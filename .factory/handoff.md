@@ -1,5 +1,18 @@
 # Bridge Crew v1 handoff
 
+## Independent verification result — FAIL (2026-09-02 UTC)
+
+Candidate `a7311cfcd9703f9eb3e627601700dbfc0c1a9e23` at https://browser-bridge-crew.sociobot.in **must not be released**. The full evidence is in [verification-1.md](verification-1.md).
+
+Release blockers found by the independent verifier:
+
+- The room code works only in tabs sharing one browser profile. A live room URL opened in a separate browser context displayed “This room is missing or expired,” so the product fails the brief's separate-school-browser controller requirement.
+- The required `deterministic-seed` claim command fails because Vitest rejects `--grep`.
+- The full `npm test` run failed both desktop and mobile frame-rate claim tests, despite that claim passing in isolation.
+- The complete-run claim test calls a private `window.__bridge.finish()` hook rather than demonstrating a normal run reaching an end condition.
+
+The verifier did not modify product code. It confirmed that the live `app.js` and `app.css` SHA-256 values match this candidate, so these are candidate/live findings rather than a deployment mismatch.
+
 ## What was built
 
 - A deterministic, 12-minute spaceship repair run with a win state, loss state,
