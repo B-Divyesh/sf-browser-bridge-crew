@@ -3,6 +3,6 @@ WORKDIR /app
 COPY package.json package-lock.json ./
 RUN npm ci --omit=dev
 COPY backend ./backend
-ENV NODE_ENV=production PORT=8080 DB_PATH=/data/rooms.sqlite
+ENV NODE_ENV=production PORT=8080 DB_PATH=:memory:
 EXPOSE 8080
 CMD ["node", "backend/server.mjs"]

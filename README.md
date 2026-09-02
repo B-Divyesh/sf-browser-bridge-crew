@@ -73,8 +73,9 @@ Each product claim and its matching test are listed in
 ## Deploy
 
 Publish `dist/` to Azure Static Web Apps. Deploy `Dockerfile.realtime` as the
-product-owned `sf-browser-bridge-crew-realtime` container app with `/data`
-mounted for SQLite. The production frontend connects only to that service.
+product-owned `sf-browser-bridge-crew-realtime` container app with one replica.
+Rooms are transient and expire after 20 minutes. The production frontend
+connects only to that service.
 
 ## Privacy and license
 
