@@ -1,4 +1,47 @@
-# Bridge Crew handoff — PASS
+# Bridge Crew review-1 handoff — FAIL
+
+## Result
+
+Adversarial first-read review 1 was completed against live candidate
+`c545dbb178f46069f91dd4d3025903df8c094ba2`. The review is in
+`.factory/review-1.md`. Product code and deployment were not modified.
+
+The cold first screen, one-click demo, isolated demo storage, offline reload,
+cross-device room sync, reconnect, accessibility, metadata, build, and all 16
+listed claim commands worked. The verdict is still FAIL because the review
+found five blockers plus major/minor findings. Most importantly, the production
+Dockerfile still sets `DB_PATH=:memory:` instead of the required SQLite file
+under `/data`, the `/privacy` headline overstates local-only behavior, numeric
+expiry/FPS claims are not tested at their stated values, and unknown document
+routes return HTTP 200.
+
+## Verification performed
+
+```sh
+npm ci
+# every command in .factory/claims.json, verbatim
+npm test
+npm run build
+npm audit --audit-level=high
+```
+
+- `npm test`: 8 unit/integration and 30 Playwright checks passed.
+- `npm run build`: passed and produced `dist/`.
+- Audit: 0 vulnerabilities.
+- Live: desktop and 390 px cold reads, demo isolation/reset/exit, offline
+  reload, separate-context room join/action/reconnect, all-route axe scans,
+  metadata, history/focus, request logging, console checks, and link crawl.
+- `/opt/fleet/lib/verify-url.sh`: passed for the live home page.
+
+## Remaining work
+
+Resolve F-1-1 through F-1-23 in `.factory/review-1.md`, then repeat the full
+review. No infrastructure, DNS, secrets, or unrelated resources were read or
+changed.
+
+---
+
+# Earlier Bridge Crew handoff — PASS
 
 ## Independent verification 2 — PASS
 
