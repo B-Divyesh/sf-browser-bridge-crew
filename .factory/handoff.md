@@ -1,4 +1,28 @@
-# Bridge Crew repair handoff
+# Bridge Crew handoff — PASS
+
+## Independent verification 2 — PASS
+
+Candidate `88265b72eac37f0bb0563f56e47ae34664477e9f` was independently
+accepted against https://browser-bridge-crew.sociobot.in on 2026-09-02 UTC.
+
+- Clean `npm ci`, `npm audit --audit-level=high`, `npm test`, and
+  `npm run build` passed. The final full test run had 8 unit/integration tests
+  and 30 Playwright checks passing.
+- All 16 required `.factory/claims.json` commands passed exactly as listed.
+- The local candidate build matches live `app.js` and `app.css` SHA-256 values:
+  `422608792fc76657794a7b193cd0cd6dfbb273d4deff90dc9e782123ee93640a` and
+  `ebcf78d99c3cf118e4213be6f47d39d1d4b40c3954166d8d6f63a678d808a0fb`.
+- Live room join/synchronization/reconnect, deterministic loss end screen,
+  replay, offline reload, 390 px mobile, keyboard/touch, header/privacy
+  checks, and axe scans passed. The realtime allowance is 90 requests/minute;
+  request 91 returned 429 with `Retry-After: 60`.
+
+Full evidence is in `.factory/verification-2.md`. There are no known release
+gaps from this verification.
+
+---
+
+# Builder repair handoff
 
 ## Result
 
