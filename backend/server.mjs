@@ -52,7 +52,8 @@ export function createBridgeServer(options = {}) {
   if (dbPath !== ':memory:') mkdirSync(dirname(dbPath), { recursive: true });
   const db = new DatabaseSync(dbPath);
   db.exec(`
-    PRAGMA journal_mode = WAL;
+    PRAGMA busy_timeout = 10000;
+    PRAGMA journal_mode = DELETE;
     CREATE TABLE IF NOT EXISTS rooms (
       code TEXT PRIMARY KEY,
       host_token TEXT NOT NULL,

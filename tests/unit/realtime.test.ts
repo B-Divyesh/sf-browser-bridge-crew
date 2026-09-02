@@ -1,5 +1,8 @@
 import { afterEach, describe, expect, it } from 'vitest';
 import type { AddressInfo } from 'node:net';
+import { mkdtempSync, rmSync } from 'node:fs';
+import { tmpdir } from 'node:os';
+import { join } from 'node:path';
 import WebSocket from 'ws';
 import { createGame } from '../../src/game';
 // The production relay is plain ESM so the same file runs directly in Node and the container.
@@ -8,10 +11,13 @@ import { createBridgeServer } from '../../backend/server.mjs';
 
 type RunningServer = ReturnType<typeof createBridgeServer>;
 let running: RunningServer | null = null;
+let temporaryDirectory: string | null = null;
 
 afterEach(async () => {
   await running?.close();
   running = null;
+  if (temporaryDirectory) rmSync(temporaryDirectory, { recursive: true, force: true });
+  temporaryDirectory = null;
 });
 
 async function start(options: Record<string, unknown> = {}) {
@@ -46,6 +52,13 @@ async function waitFor(messages: Array<Record<string, unknown>>, kind: string) {
 }
 
 describe.sequential('product-owned realtime authority', () => {
+  it('uses the rollback journal required by the single-writer mounted SQLite file', async () => {
+    temporaryDirectory = mkdtempSync(join(tmpdir(), 'bridge-realtime-'));
+    running = createBridgeServer({ port: 0, dbPath: join(temporaryDirectory, 'rooms.sqlite') });
+    await running.listen();
+    expect(running.db.prepare('PRAGMA journal_mode').get().journal_mode).toBe('delete');
+  });
+
   it('@claim:cross-device-room uses a short code, synchronizes roles, and accepts actions from another client', async () => {
     const base = await start();
     const created = await json(`${base}/rooms`, { method: 'POST', body: JSON.stringify({ state: createGame(57231) }) });
