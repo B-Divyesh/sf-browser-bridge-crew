@@ -18,6 +18,51 @@ const BUILD_SHA = process.env.BUILD_SHA || process.env.SOURCE_COMMIT || 'develop
 export const ROOM_STORAGE_COLUMNS = ['code', 'host_token', 'state', 'created_at', 'updated_at', 'expires_at'];
 export const PLAYER_STORAGE_COLUMNS = ['token', 'room_code', 'role', 'created_at'];
 
+function waitForSqliteLock(milliseconds) {
+  // Azure Files can retain an SMB advisory lock for a few seconds while a
+  // previous single replica finishes. Waiting during boot preserves the room
+  // file instead of crash-looping or falling back to volatile storage.
+  Atomics.wait(new Int32Array(new SharedArrayBuffer(4)), 0, 0, milliseconds);
+}
+
+function openRoomDatabase(dbPath) {
+  const deadline = Date.now() + 45_000;
+  let lastError;
+  while (Date.now() <= deadline) {
+    const db = new DatabaseSync(dbPath);
+    try {
+      db.exec(`
+        PRAGMA busy_timeout = 10000;
+        PRAGMA journal_mode = DELETE;
+        PRAGMA foreign_keys = ON;
+        CREATE TABLE IF NOT EXISTS rooms (
+          code TEXT PRIMARY KEY,
+          host_token TEXT NOT NULL,
+          state TEXT NOT NULL,
+          created_at INTEGER NOT NULL,
+          updated_at INTEGER NOT NULL,
+          expires_at INTEGER NOT NULL
+        );
+        CREATE TABLE IF NOT EXISTS players (
+          token TEXT PRIMARY KEY,
+          room_code TEXT NOT NULL,
+          role TEXT NOT NULL,
+          created_at INTEGER NOT NULL,
+          FOREIGN KEY(room_code) REFERENCES rooms(code) ON DELETE CASCADE
+        );
+        CREATE INDEX IF NOT EXISTS players_room ON players(room_code);
+      `);
+      return db;
+    } catch (error) {
+      db.close();
+      lastError = error;
+      if (error?.code !== 'ERR_SQLITE_ERROR' || !/database is locked/i.test(String(error.message))) throw error;
+      waitForSqliteLock(750);
+    }
+  }
+  throw lastError;
+}
+
 function code() {
   return Array.from({ length: 5 }, () => CODE_ALPHABET[randomInt(CODE_ALPHABET.length)]).join('');
 }
@@ -55,26 +100,7 @@ export function createBridgeServer(options = {}) {
   const httpLimit = Number(options.httpLimit ?? process.env.HTTP_RATE_LIMIT ?? 90);
   const roomTtlMs = Number(options.roomTtlMs ?? process.env.ROOM_TTL_MS ?? ROOM_TTL_MS);
   if (dbPath !== ':memory:') mkdirSync(dirname(dbPath), { recursive: true });
-  const db = new DatabaseSync(dbPath);
-  db.exec(`
-    PRAGMA busy_timeout = 10000;
-    CREATE TABLE IF NOT EXISTS rooms (
-      code TEXT PRIMARY KEY,
-      host_token TEXT NOT NULL,
-      state TEXT NOT NULL,
-      created_at INTEGER NOT NULL,
-      updated_at INTEGER NOT NULL,
-      expires_at INTEGER NOT NULL
-    );
-    CREATE TABLE IF NOT EXISTS players (
-      token TEXT PRIMARY KEY,
-      room_code TEXT NOT NULL,
-      role TEXT NOT NULL,
-      created_at INTEGER NOT NULL,
-      FOREIGN KEY(room_code) REFERENCES rooms(code) ON DELETE CASCADE
-    );
-    CREATE INDEX IF NOT EXISTS players_room ON players(room_code);
-  `);
+  const db = openRoomDatabase(dbPath);
 
   const sockets = new Map();
   const requestBuckets = new Map();
