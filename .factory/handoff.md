@@ -79,7 +79,7 @@ npm run build
 - Local/live SHA-256 identity matches:
   - `app.js`: `422608792fc76657794a7b193cd0cd6dfbb273d4deff90dc9e782123ee93640a`
   - `app.css`: `ebcf78d99c3cf118e4213be6f47d39d1d4b40c3954166d8d6f63a678d808a0fb`
-- A host created room `BD77Y`. Its exact `?host=1` URL opened “Choose your
+- A host created room `E9ANZ`. Its exact `?host=1` URL opened “Choose your
   station” in an isolated 390 px browser context. Signals joined, scanned,
   changed the host fault to “Life Support,” reloaded, and restored the Signals
   role. No console errors occurred.
@@ -97,6 +97,8 @@ npm run build
 - The active container revision is healthy in single-revision mode with one
   replica. The unused empty Azure Files share created during deployment
   diagnosis was unmounted and deleted; it contained no user data.
+- The app and managed certificate use only `sf-browser-bridge-crew-*` scoped
+  names. The fleet helper’s superseded generic certificate was deleted.
 
 ## Storage decision and known gap
 
