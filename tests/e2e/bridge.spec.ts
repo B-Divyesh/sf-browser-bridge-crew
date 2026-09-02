@@ -213,6 +213,8 @@ test('@claim:no-tracking public pages and a live room load only Bridge Crew file
   await page.goto('/');
   await page.getByRole('button', { name: 'Create a room' }).click();
   await expect(page).toHaveURL(/\/room\//);
+  await expect(page.getByText(/Connected to room/)).toBeVisible();
+  await expect.poll(() => seen.has('ws://127.0.0.1:8787')).toBeTruthy();
   expect([...seen].sort()).toEqual(['http://127.0.0.1:4173', 'http://127.0.0.1:8787', 'ws://127.0.0.1:8787']);
   const scriptOrigins = await page.locator('script[src]').evaluateAll((scripts) => scripts.map((script) => new URL((script as HTMLScriptElement).src).origin));
   expect([...new Set(scriptOrigins)]).toEqual(['http://127.0.0.1:4173']);
