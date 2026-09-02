@@ -3,4 +3,8 @@ dist/
 .env
 *.log
 graphify-out/
+test-results/
+playwright-report/
+.factory/screenshots/
+.factory/lighthouse-*.json
 .DS_Store

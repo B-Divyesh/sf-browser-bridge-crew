@@ -1,0 +1,9 @@
+{
+  "date": "2026-09-02",
+  "tool": "/opt/fleet/lib/gen-image.sh",
+  "deployment": "factory-image",
+  "size": "1536x1024",
+  "quality": "high",
+  "prompt": "Use case: stylized-concept. Asset type: cinematic landing hero and game observation window. A compact civilian research spaceship undergoing repair outside a vast orbital dock observation window, distant blue planet and sparse star field, no people. Weathered off-white ceramic hull, brushed brass structural struts, tiny warm amber work lamps, low midnight-teal ambient light, gentle oxidized green details, subtle coral warning glow. Cinematic environmental concept art, painterly realism, wide 3:2 composition, quiet dark negative space on the left and ship in the right two-thirds, strong silhouette, classroom-safe hopeful tension. No text, no watermark, no logos, no weapons, no uniforms, no recognizable franchise shapes, no dense interface, no symbols.",
+  "review": "Accepted. No people, text, logos, weapons, obvious seams, or malformed focal objects found. The planet limb and ship silhouette remain clear at mobile crop size."
+}
