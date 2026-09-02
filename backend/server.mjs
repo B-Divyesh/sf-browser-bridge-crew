@@ -96,7 +96,7 @@ function actionMatchesRole(action, role) {
 
 export function createBridgeServer(options = {}) {
   const port = Number(options.port ?? process.env.PORT ?? 8080);
-  const dbPath = options.dbPath ?? process.env.DB_PATH ?? '/data/rooms.sqlite';
+  const dbPath = options.dbPath ?? process.env.DB_PATH ?? '/data/bridge-crew.sqlite';
   const httpLimit = Number(options.httpLimit ?? process.env.HTTP_RATE_LIMIT ?? 90);
   const roomTtlMs = Number(options.roomTtlMs ?? process.env.ROOM_TTL_MS ?? ROOM_TTL_MS);
   if (dbPath !== ':memory:') mkdirSync(dirname(dbPath), { recursive: true });
