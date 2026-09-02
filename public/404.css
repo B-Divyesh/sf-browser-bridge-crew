@@ -1,0 +1,8 @@
+body { display: grid; min-height: 100vh; margin: 0; grid-template-rows: auto 1fr auto; background: #07131a; color: #f4f1df; font: 18px/1.5 system-ui, sans-serif; }
+header, footer { width: min(620px, calc(100% - 40px)); margin: auto; padding: 24px 0; border-bottom: 1px solid #35505a; }
+footer { border-top: 1px solid #35505a; border-bottom: 0; color: #b8c8c5; font-size: 14px; }
+main { width: min(620px, calc(100% - 40px)); }
+h1 { max-width: 12ch; font-size: clamp(2.5rem, 8vw, 5rem); line-height: 1; }
+p { color: #b8c8c5; }
+a { color: #f4f1df; }.button { display: inline-block; padding: 13px 18px; border-radius: 3px; background: #ffd166; color: #111b1e; font-weight: 700; }
+a:focus-visible { outline: 3px solid #62d6bd; outline-offset: 4px; }
