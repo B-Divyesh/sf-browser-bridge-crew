@@ -1,87 +1,134 @@
-# Bridge Crew v1 handoff
+# Bridge Crew repair handoff
 
-## Independent verification result — FAIL (2026-09-02 UTC)
+## Result
 
-Candidate `a7311cfcd9703f9eb3e627601700dbfc0c1a9e23` at https://browser-bridge-crew.sociobot.in **must not be released**. The full evidence is in [verification-1.md](verification-1.md).
+The independent verifier’s blockers from report commit
+`f54725631f7e3f3a53bb14110e6dbb45d2364b7e` are repaired and deployed.
 
-Release blockers found by the independent verifier:
+- `https://browser-bridge-crew.sociobot.in` serves the static browser game.
+- `https://browser-bridge-crew-realtime.sociobot.in` is the product-owned
+  WebSocket authority on `sf-browser-bridge-crew-realtime`.
+- The realtime service reports version `1.1.0` and source commit
+  `1d51d3cd33501a024e10aa07aa4f89a0e3f6ada4`.
 
-- The room code works only in tabs sharing one browser profile. A live room URL opened in a separate browser context displayed “This room is missing or expired,” so the product fails the brief's separate-school-browser controller requirement.
-- The required `deterministic-seed` claim command fails because Vitest rejects `--grep`.
-- The full `npm test` run failed both desktop and mobile frame-rate claim tests, despite that claim passing in isolation.
-- The complete-run claim test calls a private `window.__bridge.finish()` hook rather than demonstrating a normal run reaching an end condition.
+## Repairs
 
-The verifier did not modify product code. It confirmed that the live `app.js` and `app.css` SHA-256 values match this candidate, so these are candidate/live findings rather than a deployment mismatch.
+- Replaced `localStorage` and `BroadcastChannel` room transport with a
+  same-product WebSocket service. Five-character codes now work across
+  separate browser profiles and devices.
+- Added synchronized station roles, random per-tab reconnect tokens, current
+  state restoration, automatic reconnect, 20-minute expiry, an eight-player
+  ceiling, origin checks, 4 KB message limits, and HTTP/WebSocket rate limits.
+- Kept the demo local-only and offline. Demo keys remain under
+  `demo:bridge:` and never open a realtime connection.
+- Corrected the `deterministic-seed` claim command from unsupported `--grep`
+  to Vitest’s `-t` filter.
+- Removed `window.__bridge.finish()`. The browser regression now repairs one
+  fault, disables Assist, and uses normal repair controls until integrity
+  reaches zero and the real end dialog opens.
+- Serialized the desktop/mobile browser projects and measured two-second
+  animation-frame windows. This removes CPU contention from the FPS claim.
+- Put a working sample fault control in the first viewport on desktop and
+  390 px mobile so the initial capture shows playable game state.
+- Updated privacy copy, CSP, README, design notes, demo instructions, claims,
+  and the copy audit for cross-device rooms.
 
-## What was built
+## Exact regression coverage
 
-- A deterministic, 12-minute spaceship repair run with a win state, loss state,
-  scoring, integrity, replay, fault timeouts, and seeded fault sequences.
-- Four dependent stations: Signals reveals a clue, Helm sets its bearing, Power
-  routes its module, and Engineering enters its three-symbol repair code.
-- Host and crew routes with five-character room codes. `BroadcastChannel`
-  carries actions between tabs, and local room state expires after 20 minutes.
-- A complete `/demo` sandbox with a populated sample, isolated `demo:` storage,
-  reset, exit, offline reload, and deterministic browser-test hooks.
-- Keyboard and touch controls, assist mode, pause-on-hidden behavior, optional
-  sound feedback, persistent settings, and a one-action replay.
-- Landing, privacy, terms, expired-room, station-picker, and designed 404 views.
-- Responsive 390 px layouts, focus styles, reduced-motion handling, semantic
-  landmarks, route announcements, and one h1 per route.
-- A product-specific cinematic scene generated for this project and optimized
-  to 23 KB mobile WebP, 58 KB desktop WebP, and 46 KB Open Graph WebP.
-- A versioned service worker, security headers, sitemap, robots file, social
-  metadata, favicon, and apple-touch icon.
+- `tests/unit/realtime.test.ts` starts an isolated authority and proves short
+  codes, role presence, cross-client actions, token reconnect, server expiry,
+  429 plus `Retry-After`, and file-backed SQLite rollback-journal behavior.
+- `tests/e2e/bridge.spec.ts` opens host and crew in separate
+  `browser.newContext()` instances, including the verifier’s shared host URL.
+- The normal end test has no time/state/finish shortcut. A repository search
+  contains no `__bridge` hook.
+- `.factory/claims.json` contains 16 claims. Every listed command was run
+  verbatim and passed.
 
-## How to run and verify
+## Local verification — 2026-09-02 UTC
+
+From a clean dependency install:
 
 ```sh
 npm ci
+npm audit --audit-level=high
 npm test
 npm run build
 ```
 
-The production output is `dist/`, with `dist/index.html` at its root. The demo
-entry point is `/demo`.
+- `npm ci`: passed; 0 audit vulnerabilities.
+- Final `npm test`: 8 unit/integration tests and 30 Playwright checks passed.
+  Playwright covered desktop Chromium and touch-enabled 390 px Chromium.
+- Two additional consecutive full-suite runs passed while stabilizing the
+  FPS gate. All 16 claim commands then passed exactly as listed.
+- Axe Playwright scans found 0 serious or critical findings on `/`, `/demo`,
+  `/privacy`, `/terms`, and the in-app 404 in both browser profiles.
+- `/opt/fleet/lib/verify-url.sh`: no console errors; title, `lang`, one `h1`,
+  `main`, image alt text, and button names all present.
+- Lighthouse 12.8.2 mobile: Performance 100, Accessibility 100, Best
+  Practices 100, SEO 100; LCP 1.1 s, CLS 0, TBT 50 ms.
+- Production output: JavaScript 32.21 KB raw / 10.90 KB gzip; CSS 21.37 KB
+  raw / 5.49 KB gzip. The mobile hero is 23.13 KB.
+- Desktop 1440×1000 and mobile 390×844 visual reviews found no horizontal
+  overflow. Focus styling, keyboard controls, touch controls, reduced motion,
+  dialogs, invalid codes, error states, and offline status were exercised.
 
-Verification on 2026-09-02:
+## Live verification — 2026-09-02 UTC
 
-- `npm test`: 4 deterministic unit tests and 28 Playwright checks passed.
-- Playwright ran desktop Chromium and a 390 px touch-enabled Chromium profile.
-- Claim-specific tests cover all 13 records in `.factory/claims.json`.
-- Axe found no serious or critical findings on `/`, `/demo`, `/privacy`,
-  `/terms`, or the in-app missing-page route in both profiles.
-- Browser console inspection found no errors on the home and demo routes.
-- `npm audit --audit-level=high`: 0 vulnerabilities.
-- `npm run build`: passed; app JavaScript is 27.7 KB raw / 9.7 KB gzip and app
-  CSS is 20.6 KB raw / 5.4 KB gzip.
-- Lighthouse 12.8.2 mobile: Performance 100, Accessibility 100, Best Practices
-  100, SEO 100; LCP 1.2 s, CLS 0, total blocking time 0 ms.
-- A one-second animation-frame sample measured 62 desktop frames and 61 mobile
-  emulation frames. The automated floor is 50 frames per second.
-- Visual checks at 1440×1000 and 390×844 found no horizontal overflow.
+- Static and realtime custom domains return HTTPS 200 with managed TLS.
+- Local/live SHA-256 identity matches:
+  - `app.js`: `422608792fc76657794a7b193cd0cd6dfbb273d4deff90dc9e782123ee93640a`
+  - `app.css`: `ebcf78d99c3cf118e4213be6f47d39d1d4b40c3954166d8d6f63a678d808a0fb`
+- A host created room `BD77Y`. Its exact `?host=1` URL opened “Choose your
+  station” in an isolated 390 px browser context. Signals joined, scanned,
+  changed the host fault to “Life Support,” reloaded, and restored the Signals
+  role. No console errors occurred.
+- A live demo ended through seven visible incorrect-repair actions with the
+  heading “The ship needs another crew.” Offline reload restored the active
+  demo and its offline status.
+- Two-second live frame samples counted 122 desktop and 121 mobile frames.
+- The live verifier script reports one `h1`, a `main`, `lang=en`, no missing
+  alt text or unnamed buttons, and no browser console errors.
+- Static headers include the exact realtime HTTPS/WSS origins in `connect-src`,
+  `frame-ancestors 'none'`, `nosniff`, strict referrer policy, and disabled
+  camera, microphone, and geolocation.
+- Realtime responses are `no-store`, deny framing, allow only the production
+  site and local test origins, and return 403 for an untrusted origin.
+- The active container revision is healthy in single-revision mode with one
+  replica. The unused empty Azure Files share created during deployment
+  diagnosis was unmounted and deleted; it contained no user data.
 
-## Known gap and reason
+## Storage decision and known gap
 
-The researched brief asks players to join from separate school devices. This
-work order requires a static deployment, while cross-device room discovery
-needs a server-owned WebSocket or WebRTC signalling service. Adding an external
-relay would violate the privacy and product-ownership rules. This v1 therefore
-connects tabs only inside one browser profile and says so on the landing page,
-README, and room errors. It is a complete local cooperative run, but it does not
-yet satisfy cross-device play.
+Production rooms are intentionally transient in the single realtime process.
+They expire after 20 minutes and contain only game state, station roles, and
+random tokens. Browser reloads and ordinary network interruptions reconnect.
+A container revision restart expires active rooms early.
 
-## Next step
+SQLite is supported and tested for a normal local filesystem, but Azure Files
+rejected SQLite locking even on a clean zero-byte database. The game contract
+allows transient in-memory rooms, and there is no leaderboard or durable user
+record to preserve, so production uses the honest in-memory path. A future
+need for restart-surviving rooms should use a container-native persistent store
+rather than SQLite over SMB.
 
-Provision `sf-browser-bridge-crew-realtime` as a product-owned WebSocket service,
-then replace the `BroadcastChannel` transport without changing the deterministic
-game core. Add room membership, reconnection tokens, and server-enforced expiry.
-The service should retain no names, chat, or history and should store transient
-rooms only in memory or in SQLite under `/data`.
+## Run and deploy
+
+```sh
+npm ci
+PORT=8787 DB_PATH=:memory: npm run realtime
+npm run dev
+npm test
+npm run build
+```
+
+Deploy `dist/` with the static work-order configuration. Deploy
+`Dockerfile.realtime` as `sf-browser-bridge-crew-realtime` on port 8080 in
+single-revision, one-replica mode.
 
 ## Asset provenance
 
-The orbital repair scene was generated with the factory image deployment on
-2026-09-02. The full prompt, review, and source are in `assets/src/`. The image
-contains no text, people, logos, weapons, or recognizable franchise elements.
-The interface icons and bridge schematic are original inline SVG.
+The existing orbital repair scene remains unchanged. It was generated for this
+product with the factory image deployment on 2026-09-02. Its prompt, review,
+and source are under `assets/src/`; it contains no text, people, brands, or
+recognizable franchise material.
