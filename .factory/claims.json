@@ -1,0 +1,93 @@
+[
+  {
+    "id": "sample-demo",
+    "claim": "Try it with sample data opens a repair already in progress.",
+    "where": "landing first screen, README",
+    "test": "npm test -- --grep @claim:sample-demo",
+    "sandbox": "fresh browser context at /; follow the one-click demo action"
+  },
+  {
+    "id": "complete-run",
+    "claim": "Players can repair a fault and reach the end screen.",
+    "where": "game, README",
+    "test": "npm test -- --grep @claim:complete-run",
+    "sandbox": "fresh /demo state; solve one deterministic fault and finish the clock"
+  },
+  {
+    "id": "round-length",
+    "claim": "Each run starts with a 12-minute clock.",
+    "where": "landing first screen, game, README",
+    "test": "npm test -- --grep @claim:round-length",
+    "sandbox": "fresh /demo state; inspect the deterministic duration in milliseconds"
+  },
+  {
+    "id": "deterministic-seed",
+    "claim": "Each seed creates a repeatable fault sequence.",
+    "where": "README, end screen",
+    "test": "npm run test:unit -- --grep @claim:deterministic-seed",
+    "sandbox": "deterministic core; generate the same indexed fault twice and compare every field"
+  },
+  {
+    "id": "replay",
+    "claim": "Playing again resets the run.",
+    "where": "end screen, README",
+    "test": "npm test -- --grep @claim:replay",
+    "sandbox": "fresh /demo state; finish and restart the same seed"
+  },
+  {
+    "id": "settings-persist",
+    "claim": "Assist and sound settings persist locally.",
+    "where": "game settings, README",
+    "test": "npm test -- --grep @claim:settings-persist",
+    "sandbox": "fresh /demo state; change assist mode and reload"
+  },
+  {
+    "id": "local-room",
+    "claim": "Room actions sync between tabs in one browser profile.",
+    "where": "landing start panel, README",
+    "test": "npm test -- --grep @claim:local-room",
+    "sandbox": "fresh browser context; create host and Signals tabs, then scan a fault"
+  },
+  {
+    "id": "keyboard-controls",
+    "claim": "The game has keyboard and touch controls.",
+    "where": "landing facts, README",
+    "test": "npm test -- --grep @claim:keyboard-controls",
+    "sandbox": "fresh /demo state; adjust Helm with an Arrow key and a visible control"
+  },
+  {
+    "id": "frame-rate",
+    "claim": "The active game targets 60 frames per second.",
+    "where": "README, handoff",
+    "test": "npm test -- --grep @claim:frame-rate",
+    "sandbox": "fresh /demo state; count animation frames for one second and require at least 50"
+  },
+  {
+    "id": "privacy-local",
+    "claim": "The demo asks for no personal data and sends no data to another origin.",
+    "where": "demo banner, privacy, README",
+    "test": "npm test -- --grep @claim:privacy-local",
+    "sandbox": "fresh /demo state; record every request during a station action"
+  },
+  {
+    "id": "free-play",
+    "claim": "Bridge Crew is free to play.",
+    "where": "landing facts, footer, README",
+    "test": "npm test -- --grep @claim:free-play",
+    "sandbox": "fresh landing page; confirm the free label and absence of payment actions"
+  },
+  {
+    "id": "room-expiry",
+    "claim": "Room state expires after 20 minutes.",
+    "where": "landing privacy section, privacy, README",
+    "test": "npm test -- --grep @claim:room-expiry",
+    "sandbox": "fresh browser context; expire a created room and verify that it cannot be joined"
+  },
+  {
+    "id": "offline-reload",
+    "claim": "The demo works offline after the first visit.",
+    "where": "README",
+    "test": "npm test -- --grep @claim:offline-reload",
+    "sandbox": "fresh browser context; load /demo, wait for its service worker, go offline, and reload"
+  }
+]
