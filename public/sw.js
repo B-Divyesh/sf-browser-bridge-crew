@@ -1,4 +1,4 @@
-const CACHE = 'bridge-crew-v2';
+const CACHE = 'bridge-crew-v3';
 const SHELL = ['/index.html', '/', '/demo', '/privacy', '/terms', '/favicon.svg', '/assets/app.js', '/assets/app.css', '/assets/orbital-repair-768.webp', '/assets/orbital-repair-1280.webp'];
 
 self.addEventListener('install', (event) => {

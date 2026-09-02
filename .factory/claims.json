@@ -7,6 +7,13 @@
     "sandbox": "fresh browser context at /; follow the one-click demo action"
   },
   {
+    "id": "playable-first-screen",
+    "claim": "The first screen includes a playable sample fault.",
+    "where": "landing first screen",
+    "test": "npm test -- --grep @claim:playable-first-screen",
+    "sandbox": "fresh landing page at desktop and 390px; scan the visible sample fault and assert the clue appears"
+  },
+  {
     "id": "complete-run",
     "claim": "Players can repair a fault and reach the end screen.",
     "where": "game, README",
@@ -24,7 +31,7 @@
     "id": "deterministic-seed",
     "claim": "Each seed creates a repeatable fault sequence.",
     "where": "README, end screen",
-    "test": "npm run test:unit -- --grep @claim:deterministic-seed",
+    "test": "npm run test:unit -- -t @claim:deterministic-seed",
     "sandbox": "deterministic core; generate the same indexed fault twice and compare every field"
   },
   {
@@ -42,11 +49,18 @@
     "sandbox": "fresh /demo state; change assist mode and reload"
   },
   {
-    "id": "local-room",
-    "claim": "Room actions sync between tabs in one browser profile.",
+    "id": "cross-device-room",
+    "claim": "Room actions sync between separate browser sessions and devices.",
     "where": "landing start panel, README",
-    "test": "npm test -- --grep @claim:local-room",
-    "sandbox": "fresh browser context; create host and Signals tabs, then scan a fault"
+    "test": "npm test -- --grep @claim:cross-device-room",
+    "sandbox": "two isolated browser contexts; create a host, join Signals, then scan a fault across the WebSocket relay"
+  },
+  {
+    "id": "room-reconnect",
+    "claim": "A station reconnects to its role and current room state.",
+    "where": "game connection status, README",
+    "test": "npm test -- --grep @claim:room-reconnect",
+    "sandbox": "fresh room; join Helm in an isolated context, reload, and verify the same role and current state return"
   },
   {
     "id": "keyboard-controls",
@@ -80,8 +94,15 @@
     "id": "room-expiry",
     "claim": "Room state expires after 20 minutes.",
     "where": "landing privacy section, privacy, README",
-    "test": "npm test -- --grep @claim:room-expiry",
-    "sandbox": "fresh browser context; expire a created room and verify that it cannot be joined"
+    "test": "npm run test:unit -- -t @claim:room-expiry",
+    "sandbox": "isolated in-memory SQLite service with a short configured lifetime; create a room and assert a later lookup returns 404"
+  },
+  {
+    "id": "rate-limit",
+    "claim": "The room service limits rapid requests.",
+    "where": "README, privacy",
+    "test": "npm run test:unit -- -t @claim:rate-limit",
+    "sandbox": "isolated room service with a three-request limit; assert the next request returns 429 and Retry-After"
   },
   {
     "id": "offline-reload",

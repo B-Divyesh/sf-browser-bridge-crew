@@ -1,6 +1,5 @@
 import { describe, expect, it } from 'vitest';
 import { attemptRepair, createFault, createGame, enterGlyph, routePower, scan, setHeading, startGame, stepGame } from '../../src/game';
-import { makeRoomCode } from '../../src/room';
 
 describe('deterministic game core', () => {
   it('@claim:deterministic-seed creates the same fault sequence from the same seed', () => {
@@ -26,9 +25,5 @@ describe('deterministic game core', () => {
     expect(lost.phase).toBe('lost');
     const won = stepGame(startGame(createGame(31, true, 1_000)), 1_001);
     expect(won.phase).toBe('won');
-  });
-
-  it('creates readable five-character room codes', () => {
-    expect(makeRoomCode(() => 0.25)).toMatch(/^[A-Z2-9]{5}$/);
   });
 });

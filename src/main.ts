@@ -16,7 +16,7 @@ import {
   type Glyph,
   type ModuleName,
 } from './game';
-import { clearExpiredRooms, createRoom, loadRoom, saveRoom, type RoomRecord } from './room';
+import { createRoom, joinRoom, loadRoom, RealtimeRoom, roomIdentity, type RoomRecord } from './room';
 
 const app = document.querySelector<HTMLDivElement>('#app')!;
 const routeAnnouncement = document.createElement('div');
@@ -82,7 +82,7 @@ function footer(): string {
   return `<footer class="site-footer">
     <p><strong>Bridge Crew</strong> is a free, 12-minute cooperative browser game.</p>
     <nav aria-label="Footer navigation"><a href="/privacy" data-route>Privacy</a><a href="/terms" data-route>Terms</a><span>Built by Param Factory</span></nav>
-    <p class="build">Original generated scene · v1.0.0</p>
+    <p class="build">Original generated scene · v1.1.0</p>
   </footer>`;
 }
 
@@ -104,9 +104,10 @@ function homePage(): void {
     'Run a 12-minute cooperative spaceship repair game with four browser station panels.',
     `<main id="main">
       <section class="hero">
-        <div class="hero-scene" role="img" aria-label="A civilian research ship waits for repair beside an orbital window.">
-          <picture><source media="(max-width: 700px)" srcset="/assets/orbital-repair-768.webp"><img src="/assets/orbital-repair-1280.webp" width="1280" height="853" alt="" fetchpriority="high"></picture>
+        <div class="hero-scene">
+          <picture><source media="(max-width: 700px)" srcset="/assets/orbital-repair-768.webp"><img src="/assets/orbital-repair-1280.webp" width="1280" height="853" alt="A civilian research ship waits for repair beside an orbital window." fetchpriority="high"></picture>
           <div class="scene-readout" aria-hidden="true"><span>DOCK 04</span><i></i><span>SHIP STABLE</span></div>
+          <div class="hero-fault"><span>ACTIVE FAULT 03</span><strong>Navigation relay</strong><p data-sample-clue>Scan to reveal the crew’s first clue.</p><button class="panel-button" data-sample-scan>Scan sample fault</button></div>
         </div>
         <div class="hero-copy instrument-plate">
           <p class="eyebrow">4–8 players · 12 minutes</p>
@@ -121,7 +122,7 @@ function homePage(): void {
       </section>
 
       <section class="launch-panel" aria-labelledby="start-heading">
-        <div><p class="eyebrow">Start here</p><h2 id="start-heading">Open a room on this browser</h2><p>Project the host tab. Open each station in another tab on the same browser profile.</p></div>
+        <div><p class="eyebrow">Start here</p><h2 id="start-heading">Open a room for your crew</h2><p>Project the host screen. Players join from their own browsers with the room code.</p></div>
         <div class="launch-actions">
           <button class="button primary" id="create-room">Create a room</button>
           <form id="join-form" novalidate><label for="room-code">Room code</label><div class="join-row"><input id="room-code" name="code" minlength="5" maxlength="5" autocomplete="off" inputmode="text" required><button class="button secondary" type="submit">Join room</button></div><p class="form-error" id="join-error" role="alert"></p></form>
@@ -129,7 +130,7 @@ function homePage(): void {
       </section>
 
       <section class="bridge-preview" aria-labelledby="preview-title">
-        <div class="section-heading"><p class="eyebrow">Live bridge preview</p><h2 id="preview-title">One fault needs four stations</h2><p>Players say what they see. Every repair needs their answers in order.</p></div>
+        <div class="section-heading"><p class="eyebrow">Playable bridge preview</p><h2 id="preview-title">One fault needs four stations</h2><p>Scan this sample fault. The full demo includes every station.</p></div>
         ${previewMarkup()}
       </section>
 
@@ -138,16 +139,32 @@ function homePage(): void {
         <ol class="steps"><li><span>01</span><div><h3>Create a room</h3><p>Project the bridge and read the five-character room code aloud.</p></div></li><li><span>02</span><div><h3>Open four stations</h3><p>Assign Helm, Power, Signals, and Engineering. Extra players share controls.</p></div></li><li><span>03</span><div><h3>Repair together</h3><p>Call out each clue, align the ship, route power, and enter the repair code.</p></div></li></ol>
       </section>
 
-      <section class="limits" aria-labelledby="limits-title"><div><p class="eyebrow">Privacy and limits</p><h2 id="limits-title">A game, not a student account</h2></div><ul><li>No names, chat, cameras, or recordings.</li><li>Room state stays in this browser and expires after 20 minutes.</li><li>This static v1 connects tabs in one browser profile. It does not yet connect separate devices.</li></ul></section>
+      <section class="limits" aria-labelledby="limits-title"><div><p class="eyebrow">Privacy and limits</p><h2 id="limits-title">A game, not a student account</h2></div><ul><li>No names, chat, cameras, or recordings.</li><li>The room service stores only game state and random reconnect tokens.</li><li>Rooms expire after 20 minutes. The game includes no analytics.</li></ul></section>
     </main>`,
   );
 
-  document.querySelector('#create-room')?.addEventListener('click', () => {
-    clearExpiredRooms();
-    const room = createRoom(createGame(Math.floor(Math.random() * 90_000) + 10_000));
-    navigate(`/room/${room.code}?host=1`);
+  document.querySelectorAll<HTMLButtonElement>('[data-sample-scan], #preview-scan').forEach((button) => button.addEventListener('click', () => {
+    document.querySelectorAll<HTMLButtonElement>('[data-sample-scan], #preview-scan').forEach((control) => {
+      control.textContent = 'Scan complete';
+      control.disabled = true;
+    });
+    document.querySelectorAll<HTMLElement>('[data-sample-clue], #preview-clue').forEach((clue) => { clue.textContent = 'Bearing +15°. Route navigation. Enter Ring, Wave, Kite.'; });
+  }));
+  document.querySelector<HTMLButtonElement>('#create-room')?.addEventListener('click', async (event) => {
+    const button = event.currentTarget as HTMLButtonElement;
+    const error = document.querySelector<HTMLElement>('#join-error')!;
+    button.disabled = true;
+    button.textContent = 'Creating room…';
+    try {
+      const room = await createRoom(createGame(Math.floor(Math.random() * 90_000) + 10_000));
+      navigate(`/room/${room.code}?host=1`);
+    } catch {
+      error.textContent = 'The room service could not create a room. Check your connection and try again.';
+      button.disabled = false;
+      button.textContent = 'Create a room';
+    }
   });
-  document.querySelector<HTMLFormElement>('#join-form')?.addEventListener('submit', (event) => {
+  document.querySelector<HTMLFormElement>('#join-form')?.addEventListener('submit', async (event) => {
     event.preventDefault();
     const input = document.querySelector<HTMLInputElement>('#room-code')!;
     const code = input.value.trim().toUpperCase();
@@ -157,8 +174,9 @@ function homePage(): void {
       input.focus();
       return;
     }
-    if (!loadRoom(code)) {
-      error.textContent = 'That room was not found in this browser. Check the code or ask the host to create a new room.';
+    error.textContent = 'Checking room…';
+    if (!await loadRoom(code)) {
+      error.textContent = 'That room is missing or expired. Check the code or ask the host to create a new room.';
       input.focus();
       return;
     }
@@ -169,7 +187,7 @@ function homePage(): void {
 function previewMarkup(): string {
   return `<div class="preview-grid" aria-label="Example bridge status">
     <div class="ship-status"><div class="status-top"><span>INTEGRITY</span><strong>76%</strong></div><progress class="integrity-progress" max="100" value="76" aria-label="Example ship integrity: 76 percent"></progress><div class="ship-outline" aria-hidden="true"><svg viewBox="0 0 460 180"><path d="M38 96 92 58l202-21 118 56-118 53-201-20Z"/><path d="m131 62 48-35h84l34 11m-166 86 48 32h84l34-12"/><circle cx="324" cy="92" r="25"/><path d="M88 75h89m-89 38h89"/></svg><span class="module engines">ENG</span><span class="module life">LIFE</span><span class="module nav">NAV</span></div></div>
-    <div class="fault-card"><p class="fault-number">FAULT 03</p><h3>Navigation relay</h3><p>Signals must scan the fault before the repair starts.</p><div class="fault-timer"><span>Response window</span><strong>00:34</strong></div></div>
+    <div class="fault-card"><p class="fault-number">FAULT 03</p><h3>Navigation relay</h3><p id="preview-clue">Signals must scan the fault before the repair starts.</p><button class="panel-button" id="preview-scan">Scan sample fault</button><div class="fault-timer"><span>Response window</span><strong>00:34</strong></div></div>
     <div class="station-strip"><span><b>HELM</b> 0°</span><span><b>POWER</b> Waiting</span><span class="ready"><b>SIGNALS</b> Ready</span><span><b>ENGINEERING</b> Locked</span></div>
   </div>`;
 }
@@ -178,10 +196,11 @@ function legalPage(kind: 'privacy' | 'terms'): void {
   const privacy = kind === 'privacy';
   const heading = privacy ? 'Your game stays in your browser' : 'Use Bridge Crew fairly';
   const title = privacy ? 'Privacy — Bridge Crew' : 'Terms — Bridge Crew';
-  setPage(title, privacy ? 'Bridge Crew stores settings and short-lived rooms in your browser.' : 'The terms for using the free Bridge Crew browser game.', `<main id="main" class="text-page"><p class="eyebrow">${privacy ? 'Privacy' : 'Terms'}</p><h1 tabindex="-1">${heading}</h1>${privacy ? `
+  setPage(title, privacy ? 'Bridge Crew stores settings locally and short-lived room state on its own service.' : 'The terms for using the free Bridge Crew browser game.', `<main id="main" class="text-page"><p class="eyebrow">${privacy ? 'Privacy' : 'Terms'}</p><h1 tabindex="-1">${heading}</h1>${privacy ? `
     <p>Bridge Crew does not ask for names, email addresses, accounts, chat, camera access, or microphone access.</p>
-    <h2>What this browser stores</h2><p>The game stores sound, assist, and best-score settings. A room stores its code and current run state for up to 20 minutes. Demo data uses keys that start with <code>demo:</code>.</p>
-    <h2>What leaves this browser</h2><p>The static site loads its own pages, art, font, and scripts. It includes no advertising or analytics. Bridge Crew sends no game actions to a server.</p>
+    <h2>What this browser stores</h2><p>The game stores sound, assist, best-score settings, and a random room reconnect token. Demo data uses keys that start with <code>demo:</code>.</p>
+    <h2>What the room service stores</h2><p>Room codes, station roles, and game state go to the Bridge Crew room service. Rooms expire after 20 minutes. The service stores no names or chat.</p>
+    <h2>What else leaves this browser</h2><p>The site loads its own pages, art, font, and scripts. It includes no advertising, analytics, or third-party runtime services.</p>
     <h2>Clear stored data</h2><p>Use Reset demo inside the demo. You can also clear this site’s storage in your browser settings.</p>` : `
     <p>Bridge Crew is free classroom-safe software. You may use it at school, at home, or in a youth group.</p>
     <h2>Keep play safe</h2><p>Do not use room codes to send personal information. Stop the game if a participant needs a break.</p>
@@ -194,27 +213,40 @@ function notFoundPage(): void {
 }
 
 function stationPicker(room: RoomRecord): void {
-  setPage('Choose a station — Bridge Crew', 'Choose a Bridge Crew station in this room.', `<main id="main" class="station-pick"><p class="eyebrow">Room ${room.code}</p><h1 tabindex="-1">Choose your station</h1><p>Extra players can open the same station and share its controls.</p><div class="station-choices">${(Object.keys(stationNames) as Station[]).map((key) => `<button class="station-choice" data-station="${key}"><span>${stationNames[key]}</span><small>${stationHelp(key)}</small></button>`).join('')}</div><a href="/" data-route>Leave this room</a></main>`);
-  document.querySelectorAll<HTMLButtonElement>('[data-station]').forEach((button) => button.addEventListener('click', () => navigate(`/room/${room.code}?station=${button.dataset.station}`)));
+  setPage('Choose a station — Bridge Crew', 'Choose a Bridge Crew station in this room.', `<main id="main" class="station-pick"><p class="eyebrow">Room ${room.code}</p><h1 tabindex="-1">Choose your station</h1><p>Extra players can open the same station and share its controls.</p><div class="station-choices">${(Object.keys(stationNames) as Station[]).map((key) => `<button class="station-choice" data-station="${key}"><span>${stationNames[key]}</span><small>${stationHelp(key)}</small></button>`).join('')}</div><p id="station-error" class="form-error" role="alert"></p><a href="/" data-route>Leave this room</a></main>`);
+  document.querySelectorAll<HTMLButtonElement>('[data-station]').forEach((button) => button.addEventListener('click', async () => {
+    const station = button.dataset.station as Station;
+    document.querySelectorAll<HTMLButtonElement>('[data-station]').forEach((choice) => { choice.disabled = true; });
+    try {
+      await joinRoom(room.code, station);
+      navigate(`/room/${room.code}?station=${station}`);
+    } catch {
+      document.querySelector('#station-error')!.textContent = 'The station could not join. Check your connection and try again.';
+      document.querySelectorAll<HTMLButtonElement>('[data-station]').forEach((choice) => { choice.disabled = false; });
+    }
+  }));
 }
 
 function stationHelp(station: Station): string {
   return { helm: 'Align the ship bearing.', power: 'Route power to the damaged module.', signals: 'Reveal the repair clues.', engineering: 'Enter the code and repair.' }[station];
 }
 
-function roomPage(code: string, query: URLSearchParams): void {
-  const room = loadRoom(code);
+async function roomPage(code: string, query: URLSearchParams, signal: AbortSignal): Promise<void> {
+  setPage('Connecting — Bridge Crew', 'Connect to a Bridge Crew room.', `<main id="main" class="text-page"><p class="eyebrow">Room ${code}</p><h1 tabindex="-1">Connecting to the room</h1><p>Checking the room code and current game state.</p></main>`);
+  const room = await loadRoom(code);
+  if (signal.aborted) return;
   if (!room) {
     setPage('Room not found — Bridge Crew', 'This Bridge Crew room is missing or expired.', `<main id="main" class="text-page"><p class="eyebrow">Room error</p><h1 tabindex="-1">This room is missing or expired</h1><p>Room state expires after 20 minutes. Ask the host to create a new room.</p><a class="button primary" href="/" data-route>Create or join a room</a></main>`);
     return;
   }
-  const host = query.get('host') === '1';
+  const host = query.get('host') === '1' && roomIdentity(code)?.role === 'host';
   const station = query.get('station') as Station | null;
-  if (!host && !station) {
+  const identity = roomIdentity(code);
+  if (!host && (!station || identity?.role !== station)) {
     stationPicker(room);
     return;
   }
-  mountGame({ demo: false, room, host, station: host ? null : station });
+  mountGame({ demo: false, room: { ...room, ...identity }, host, station: host ? null : station });
 }
 
 function mountGame(options: { demo: boolean; room?: RoomRecord; host: boolean; station: Station | null }): void {
@@ -235,14 +267,15 @@ function mountGame(options: { demo: boolean; room?: RoomRecord; host: boolean; s
   let selected: Station = options.station ?? 'signals';
   let paused = false;
   let message = isDemo ? 'Sample fault loaded. Signals has the first clue.' : options.host ? 'Room ready. Open station tabs, then start the run.' : `Connected to ${stationNames[selected]}. Wait for the host.`;
-  let channel: BroadcastChannel | null = null;
+  let realtime: RealtimeRoom | null = null;
+  let connectedRoles: Array<{ role: string; connected: boolean }> = [];
   const isController = isDemo || options.host;
   const roomCode = options.room?.code;
 
   setPage(isDemo ? 'Demo — Bridge Crew' : `Room ${roomCode} — Bridge Crew`, 'Play a cooperative Bridge Crew spaceship repair run.', `<main id="main" class="game-page">
     ${isDemo ? `<aside class="demo-banner" aria-label="Demo mode"><strong>Demo — sample data, nothing is saved</strong><div><button class="text-button" id="reset-demo">Reset demo</button><a href="/" class="text-button" id="start-real" data-route>Start for real</a></div></aside>` : ''}
     <section class="game-heading"><div><p class="eyebrow">${isDemo ? 'Sample room Q7K4P' : `Room ${roomCode}`}</p><h1 tabindex="-1">${options.host || isDemo ? 'Keep the research ship running' : `Control the ${stationNames[selected]} station`}</h1></div><div class="game-tools"><button id="sound-toggle" class="icon-button" aria-pressed="${state.muted}">${icon('sound')}<span>${state.muted ? 'Turn sound on' : 'Mute sound'}</span></button><button id="pause-toggle" class="icon-button">${icon('pause')}<span>Pause run</span></button></div></section>
-    <div class="connection-state" id="connection-state" role="status"><span class="connection-dot"></span>${navigator.onLine ? message : 'This tab is offline. Reconnect before opening another station.'}</div>
+    <div class="connection-state" id="connection-state" role="status"><span class="connection-dot"></span><span id="connection-message">${navigator.onLine ? message : 'This tab is offline. Reconnect before opening another station.'}</span><span id="role-status"></span></div>
     <section class="game-board" aria-label="Bridge status">
       <div class="overview-panel">
         <div class="run-stats"><div><span>Time</span><strong id="time-value">${formatTime(state.remainingMs)}</strong></div><div><span>Integrity</span><strong id="integrity-value">${state.integrity}%</strong></div><div><span>Repairs</span><strong id="repair-value">${state.repairs}</strong></div><div><span>Score</span><strong id="score-value">${state.score}</strong></div></div>
@@ -252,7 +285,7 @@ function mountGame(options: { demo: boolean; room?: RoomRecord; host: boolean; s
       <div class="control-panel">
         ${options.station ? `<p class="station-label">Your station</p>` : `<div class="station-tabs" role="tablist" aria-label="Station panels">${(Object.keys(stationNames) as Station[]).map((key) => `<button role="tab" aria-selected="${selected === key}" data-tab="${key}">${stationNames[key]}</button>`).join('')}</div>`}
         <div id="station-panel"></div>
-        <div class="assist-row"><label><input type="checkbox" id="assist-toggle" ${state.assist ? 'checked' : ''}> Assist mode</label><span>No integrity penalty and more response time.</span></div>
+        <div class="assist-row"><label><input type="checkbox" id="assist-toggle" ${state.assist ? 'checked' : ''} ${isController ? '' : 'disabled'}> Assist mode</label><span>No integrity penalty and more response time.</span></div>
       </div>
     </section>
     <div class="game-action-row"><button class="button primary" id="start-run" ${state.phase === 'ready' && isController ? '' : 'hidden'}>Start 12-minute run</button><p id="game-message" role="status">${message}</p></div>
@@ -270,8 +303,8 @@ function mountGame(options: { demo: boolean; room?: RoomRecord; host: boolean; s
   };
 
   const dispatch = (action: Action) => {
-    if (!isController && channel) {
-      channel.postMessage({ kind: 'action', action });
+    if (!isController && realtime) {
+      realtime.send({ kind: 'action', action });
       message = `${stationNames[selected]} sent an update to the host.`;
       updateUi();
       return;
@@ -306,10 +339,7 @@ function mountGame(options: { demo: boolean; room?: RoomRecord; host: boolean; s
 
   function persistAndBroadcast(): void {
     if (!isController || !options.room) return;
-    options.room.state = state;
-    options.room.expiresAt = Date.now() + 20 * 60_000;
-    saveRoom(options.room);
-    channel?.postMessage({ kind: 'state', state });
+    realtime?.send({ kind: 'state', state });
   }
 
   function updateUi(): void {
@@ -322,6 +352,8 @@ function mountGame(options: { demo: boolean; room?: RoomRecord; host: boolean; s
     document.querySelector('#fault-module')!.textContent = state.fault.revealed ? state.fault.module : 'Scanning required';
     document.querySelector('#fault-window')!.textContent = `${Math.max(0, Math.ceil((state.fault.limitMs - state.fault.ageMs) / 1000))} seconds left`;
     document.querySelector('#game-message')!.textContent = message;
+    const roleStatus = document.querySelector('#role-status');
+    if (roleStatus) roleStatus.textContent = connectedRoles.length ? `${connectedRoles.filter((role) => role.role !== 'host').length} station connection${connectedRoles.filter((role) => role.role !== 'host').length === 1 ? '' : 's'}` : '';
     renderStation();
     if (state.phase === 'won' || state.phase === 'lost') showEnd();
   }
@@ -337,23 +369,30 @@ function mountGame(options: { demo: boolean; room?: RoomRecord; host: boolean; s
     if (!dialog.open) dialog.showModal();
   }
 
-  if (roomCode) {
-    channel = new BroadcastChannel(`bridge-room-${roomCode}`);
-    routeAbort.signal.addEventListener('abort', () => channel?.close(), { once: true });
-    channel.addEventListener('message', (event: MessageEvent) => {
-      if (event.data.kind === 'action' && isController) applyAction(event.data.action as Action);
-      if (event.data.kind === 'state' && !isController) {
-        state = event.data.state as GameState;
-        message = 'The host sent the latest bridge state.';
-        updateUi();
-      }
-      if (event.data.kind === 'join' && isController) {
-        message = `${event.data.station} station joined the room.`;
-        channel?.postMessage({ kind: 'state', state });
-        updateUi();
-      }
+  if (roomCode && options.room?.token) {
+    realtime = new RealtimeRoom(options.room, {
+      status: (status) => {
+        const connection = document.querySelector<HTMLElement>('#connection-state');
+        const connectionMessage = document.querySelector('#connection-message');
+        if (!connection || !connectionMessage) return;
+        connection.dataset.status = status;
+        connectionMessage.textContent = status === 'connected' ? `Connected to room ${roomCode}.` : status === 'closed' ? 'The room connection closed. Reload to try again.' : status === 'reconnecting' ? 'Connection lost. Reconnecting…' : 'Connecting to the room…';
+      },
+      message: (event) => {
+        if (event.kind === 'action' && event.action && isController) applyAction(event.action as Action);
+        if ((event.kind === 'state' || event.kind === 'hello') && event.state) {
+          state = event.state;
+          message = event.kind === 'hello' ? 'Current room state restored.' : 'The host sent the latest bridge state.';
+          updateUi();
+        }
+        if ((event.kind === 'roles' || event.kind === 'hello') && event.roles) {
+          connectedRoles = event.roles;
+          updateUi();
+        }
+      },
     });
-    if (!isController) channel.postMessage({ kind: 'join', station: stationNames[selected] });
+    realtime.connect();
+    routeAbort.signal.addEventListener('abort', () => realtime?.close(), { once: true });
   }
 
   document.querySelectorAll<HTMLButtonElement>('[data-tab]').forEach((button) => button.addEventListener('click', () => {
@@ -370,6 +409,7 @@ function mountGame(options: { demo: boolean; room?: RoomRecord; host: boolean; s
     persistAndBroadcast();
     updateUi();
   });
+  if (!isController) document.querySelector<HTMLButtonElement>('#pause-toggle')!.hidden = true;
   document.querySelector('#pause-toggle')?.addEventListener('click', (event) => {
     paused = !paused;
     (event.currentTarget as HTMLButtonElement).querySelector('span')!.textContent = paused ? 'Resume run' : 'Pause run';
@@ -440,10 +480,6 @@ function mountGame(options: { demo: boolean; room?: RoomRecord; host: boolean; s
   renderStation();
   requestAnimationFrame(frame);
 
-  (window as typeof window & { __bridge?: { finish: () => void; state: () => GameState } }).__bridge = {
-    finish: () => { state = { ...state, phase: 'won', remainingMs: 0 }; updateUi(); },
-    state: () => state,
-  };
 }
 
 function playTone(success: boolean, muted: boolean): void {
@@ -482,7 +518,7 @@ function renderRoute(): void {
   else if (path === '/demo') mountGame({ demo: true, host: true, station: null });
   else if (path === '/privacy') legalPage('privacy');
   else if (path === '/terms') legalPage('terms');
-  else if (path.startsWith('/room/')) roomPage(path.split('/')[2].toUpperCase(), new URLSearchParams(location.search));
+  else if (path.startsWith('/room/')) void roomPage(path.split('/')[2].toUpperCase(), new URLSearchParams(location.search), routeAbort.signal);
   else notFoundPage();
   requestAnimationFrame(() => document.querySelector<HTMLElement>('h1')?.focus({ preventScroll: true }));
 }

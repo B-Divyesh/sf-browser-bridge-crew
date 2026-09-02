@@ -47,7 +47,8 @@ corners are clipped with `clip-path` or a 4 px radius; controls are at least
 
 - Beacon yellow marks the next action. Signal green marks completed work.
 - Station tabs change which complementary panel is visible in demo mode.
-- Real rooms use one host tab and crew tabs in the same browser profile.
+- Real rooms use one host screen and crew stations on separate browsers.
+- Connection status reports connecting, connected, reconnecting, or closed.
 - Keyboard actions mirror every pointer action. Arrow keys adjust instruments;
   number keys select station controls; Space performs the named action.
 - Fault cards enter from the ship window edge. Repair feedback moves toward

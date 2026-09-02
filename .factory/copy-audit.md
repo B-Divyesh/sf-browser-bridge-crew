@@ -17,17 +17,21 @@ word. No sentence exceeds 22 words. No banned word appears.
 | Free to play | 3 | fact |
 | No accounts or chat | 4 | fact |
 | Keyboard and touch controls | 4 | fact |
+| Active fault 03 | 3 | game status |
+| Navigation relay | 2 | game status |
+| Scan to reveal the crew’s first clue. | 7 | sentence |
+| Scan sample fault | 3 | action |
 | Start here | 2 | label |
-| Open a room on this browser | 6 | h2 |
-| Project the host tab. | 4 | sentence |
-| Open each station in another tab on the same browser profile. | 11 | sentence |
+| Open a room for your crew | 6 | h2 |
+| Project the host screen. | 4 | sentence |
+| Players join from their own browsers with the room code. | 10 | sentence |
 | Create a room | 3 | action |
 | Room code | 2 | label |
 | Join room | 2 | action |
-| Live bridge preview | 3 | label |
+| Playable bridge preview | 3 | label |
 | One fault needs four stations | 5 | h2 |
-| Players say what they see. | 5 | sentence |
-| Every repair needs their answers in order. | 7 | sentence |
+| Scan this sample fault. | 4 | sentence |
+| The full demo includes every station. | 6 | sentence |
 | Signals must scan the fault before the repair starts. | 9 | sentence |
 | How it works | 3 | label |
 | Get the crew playing in three steps | 7 | h2 |
@@ -41,11 +45,11 @@ word. No sentence exceeds 22 words. No banned word appears.
 | Privacy and limits | 3 | label |
 | A game, not a student account | 6 | h2 |
 | No names, chat, cameras, or recordings. | 6 | sentence |
-| Room state stays in this browser and expires after 20 minutes. | 11 | sentence |
-| This static v1 connects tabs in one browser profile. | 9 | sentence |
-| It does not yet connect separate devices. | 7 | sentence |
+| The room service stores only game state and random reconnect tokens. | 11 | sentence |
+| Rooms expire after 20 minutes. | 5 | sentence |
+| The game includes no analytics. | 5 | sentence |
 | Bridge Crew is a free, 12-minute cooperative browser game. | 9 | footer sentence |
-| Original generated scene · v1.0.0 | 5 | provenance |
+| Original generated scene · v1.1.0 | 5 | provenance |
 
 ## Terminology
 
@@ -58,3 +62,4 @@ word. No sentence exceeds 22 words. No banned word appears.
 | Ship health | integrity |
 | Accessibility option | assist mode |
 | Isolated sample | demo |
+| Product-owned synchronization service | room service |

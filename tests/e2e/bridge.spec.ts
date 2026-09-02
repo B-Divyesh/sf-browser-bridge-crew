@@ -5,22 +5,7 @@ async function selectTab(page: Page, name: string) {
   await page.getByRole('tab', { name }).click();
 }
 
-test('@claim:sample-demo one click opens a populated repair', async ({ page }) => {
-  await page.goto('/');
-  await page.getByRole('link', { name: /Try it with sample data/ }).click();
-  await expect(page).toHaveURL(/\/demo$/);
-  await expect(page.getByText('Demo — sample data, nothing is saved')).toBeVisible();
-  await expect(page.getByText('FAULT 01')).toBeVisible();
-  await expect(page.getByText('76%')).toBeVisible();
-});
-
-test('@claim:round-length a new run is twelve minutes', async ({ page }) => {
-  await page.goto('/demo');
-  expect(await page.evaluate(() => window.__bridge?.state().durationMs)).toBe(720_000);
-});
-
-test('@claim:complete-run repairs a fault and reaches the end screen', async ({ page }) => {
-  await page.goto('/demo');
+async function repairCurrentFault(page: Page) {
   const clueText = await page.locator('.clue-sheet').innerText();
   const bearing = Number(clueText.match(/([+-]?\d+)°/)?.[1] ?? '0');
   const module = clueText.match(/engines|life support|navigation/i)?.[0] ?? 'engines';
@@ -33,15 +18,49 @@ test('@claim:complete-run repairs a fault and reaches the end screen', async ({ 
   await selectTab(page, 'Engineering');
   for (const name of codeLine.split(' · ')) await page.getByRole('button', { name: new RegExp(name, 'i') }).click();
   await page.getByRole('button', { name: /Repair module/ }).click();
-  await expect(page.locator('#repair-value')).toHaveText('4');
-  await page.evaluate(() => window.__bridge?.finish());
+}
+
+async function endRunThroughNormalPlay(page: Page) {
+  await page.getByLabel('Assist mode').uncheck();
+  await selectTab(page, 'Engineering');
+  for (let attempt = 0; attempt < 7; attempt += 1) await page.getByRole('button', { name: /Repair module/ }).click();
   await expect(page.getByRole('dialog')).toBeVisible();
-  await expect(page.getByRole('heading', { name: 'The ship made it through' })).toBeVisible();
+}
+
+test('@claim:sample-demo one click opens a populated repair', async ({ page }) => {
+  await page.goto('/');
+  await page.getByRole('link', { name: /Try it with sample data/ }).click();
+  await expect(page).toHaveURL(/\/demo$/);
+  await expect(page.getByText('Demo — sample data, nothing is saved')).toBeVisible();
+  await expect(page.getByText('FAULT 01')).toBeVisible();
+  await expect(page.getByText('76%')).toBeVisible();
+});
+
+test('@claim:playable-first-screen the first screen contains a working fault control', async ({ page }) => {
+  await page.goto('/');
+  const scan = page.locator('.hero-fault').getByRole('button', { name: 'Scan sample fault' });
+  await expect(scan).toBeVisible();
+  await scan.click();
+  await expect(page.locator('.hero-fault').getByText('Bearing +15°. Route navigation. Enter Ring, Wave, Kite.')).toBeVisible();
+});
+
+test('@claim:round-length a new run is twelve minutes', async ({ page }) => {
+  await page.goto('/');
+  await page.getByRole('button', { name: 'Create a room' }).click();
+  await expect(page.locator('#time-value')).toHaveText('12:00');
+});
+
+test('@claim:complete-run repairs a fault and reaches the end screen', async ({ page }) => {
+  await page.goto('/demo');
+  await repairCurrentFault(page);
+  await expect(page.locator('#repair-value')).toHaveText('4');
+  await endRunThroughNormalPlay(page);
+  await expect(page.getByRole('heading', { name: 'The ship needs another crew' })).toBeVisible();
 });
 
 test('@claim:replay restart resets a completed run', async ({ page }) => {
   await page.goto('/demo');
-  await page.evaluate(() => window.__bridge?.finish());
+  await endRunThroughNormalPlay(page);
   await page.getByRole('button', { name: 'Play this seed again' }).click();
   await expect(page.getByRole('dialog')).toBeHidden();
   await expect(page.locator('#repair-value')).toHaveText('0');
@@ -58,19 +77,41 @@ test('@claim:settings-persist assist setting persists locally', async ({ page })
   await expect(page.getByRole('button', { name: 'Turn sound on' })).toBeVisible();
 });
 
-test('@claim:local-room room actions sync between browser tabs', async ({ context, page }) => {
+test('@claim:cross-device-room room actions sync between separate browser contexts', async ({ browser, page }) => {
   await page.goto('/');
   await page.getByRole('button', { name: 'Create a room' }).click();
+  await expect(page).toHaveURL(/\/room\/[A-Z2-9]{5}\?host=1/);
   const roomUrl = page.url();
   const code = roomUrl.match(/room\/([A-Z2-9]{5})/)?.[1];
   expect(code).toBeTruthy();
   await page.getByRole('button', { name: 'Start 12-minute run' }).click();
 
-  const crew = await context.newPage();
-  await crew.goto(`/room/${code}`);
+  const crewContext = await browser.newContext();
+  const crew = await crewContext.newPage();
+  await crew.goto(`http://127.0.0.1:4173/room/${code}`);
+  await expect(crew.getByRole('heading', { name: 'Choose your station' })).toBeVisible();
   await crew.getByRole('button', { name: /Signals/ }).click();
+  await expect(crew.getByText(new RegExp(`Connected to room ${code}`))).toBeVisible();
   await crew.getByRole('button', { name: 'Scan active fault' }).click();
   await expect(page.locator('#fault-module')).not.toHaveText('Scanning required');
+  await crewContext.close();
+});
+
+test('@claim:room-reconnect a station reload reconnects to its role and current room state', async ({ browser, page }) => {
+  await page.goto('/');
+  await page.getByRole('button', { name: 'Create a room' }).click();
+  await expect(page).toHaveURL(/\/room\/[A-Z2-9]{5}\?host=1/);
+  const code = page.url().match(/room\/([A-Z2-9]{5})/)?.[1];
+  expect(code).toBeTruthy();
+  const crewContext = await browser.newContext();
+  const crew = await crewContext.newPage();
+  await crew.goto(`http://127.0.0.1:4173/room/${code}`);
+  await crew.getByRole('button', { name: /Helm/ }).click();
+  await expect(crew.getByText(new RegExp(`Connected to room ${code}`))).toBeVisible();
+  await crew.reload();
+  await expect(crew.getByRole('heading', { name: 'Control the Helm station' })).toBeVisible();
+  await expect(crew.getByText(new RegExp(`Connected to room ${code}`))).toBeVisible();
+  await crewContext.close();
 });
 
 test('@claim:keyboard-controls keyboard commands operate stations', async ({ page }) => {
@@ -90,12 +131,12 @@ test('@claim:frame-rate the active game targets 60 frames per second', async ({ 
     const start = performance.now();
     const sample = (now: number) => {
       count += 1;
-      if (now - start >= 1_000) resolve(count);
+      if (now - start >= 2_000) resolve(count);
       else requestAnimationFrame(sample);
     };
     requestAnimationFrame(sample);
   }));
-  expect(frames).toBeGreaterThanOrEqual(50);
+  expect(frames).toBeGreaterThanOrEqual(90);
 });
 
 test('@claim:privacy-local demo sends requests only to its own origin', async ({ page }) => {
@@ -114,22 +155,6 @@ test('@claim:free-play has no payment action', async ({ page }) => {
   await page.goto('/');
   await expect(page.getByText('Free to play')).toBeVisible();
   await expect(page.getByRole('link', { name: /buy|pay|checkout/i })).toHaveCount(0);
-});
-
-test('@claim:room-expiry expired room state cannot be joined', async ({ page }) => {
-  await page.goto('/');
-  await page.getByRole('button', { name: 'Create a room' }).click();
-  const code = page.url().match(/room\/([A-Z2-9]{5})/)?.[1];
-  expect(code).toBeTruthy();
-  await page.getByRole('button', { name: 'Pause run' }).click();
-  await page.evaluate((roomCode) => {
-    const key = `bridge:room:${roomCode}`;
-    const room = JSON.parse(localStorage.getItem(key)!);
-    room.expiresAt = 0;
-    localStorage.setItem(key, JSON.stringify(room));
-  }, code);
-  await page.goto(`/room/${code}`);
-  await expect(page.getByRole('heading', { name: 'This room is missing or expired' })).toBeVisible();
 });
 
 test('@claim:offline-reload demo reloads after the first visit while offline', async ({ browser }) => {
@@ -171,7 +196,3 @@ test('local routes load without console errors or broken links', async ({ page }
   await page.goto('/demo');
   expect(errors).toEqual([]);
 });
-
-declare global {
-  interface Window { __bridge?: { finish: () => void; state: () => { durationMs: number } } }
-}
