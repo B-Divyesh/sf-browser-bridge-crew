@@ -52,7 +52,7 @@ async function waitFor(messages: Array<Record<string, unknown>>, kind: string) {
 }
 
 describe.sequential('product-owned realtime authority', () => {
-  it('uses the rollback journal required by the single-writer mounted SQLite file', async () => {
+  it('keeps the default rollback journal required by the single-writer mounted SQLite file', async () => {
     temporaryDirectory = mkdtempSync(join(tmpdir(), 'bridge-realtime-'));
     running = createBridgeServer({ port: 0, dbPath: join(temporaryDirectory, 'rooms.sqlite') });
     await running.listen();
