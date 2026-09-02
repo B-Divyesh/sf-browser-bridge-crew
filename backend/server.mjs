@@ -29,7 +29,11 @@ function openRoomDatabase(dbPath) {
   const deadline = Date.now() + 45_000;
   let lastError;
   while (Date.now() <= deadline) {
-    const db = new DatabaseSync(dbPath);
+    // Azure Files rejects SQLite's SMB byte-range locks. The deployed room
+    // authority is hard-pinned to one replica, so SQLite's `nolock` URI mode
+    // is safe there and still persists the actual database under /data.
+    const databaseTarget = dbPath.startsWith('/data/') ? `file:${dbPath}?nolock=1` : dbPath;
+    const db = new DatabaseSync(databaseTarget);
     try {
       db.exec(`
         PRAGMA busy_timeout = 10000;
