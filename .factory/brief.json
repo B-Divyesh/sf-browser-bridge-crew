@@ -1,0 +1,10 @@
+{
+  "slug": "browser-bridge-crew",
+  "title": "Bridge Crew",
+  "summary": "Run a 12-minute cooperative spaceship repair game in browser tabs.",
+  "artifact_class": "browser-game",
+  "audience": "Teachers and youth-group hosts using a shared display and managed browsers",
+  "players": "4–8",
+  "session_minutes": 12,
+  "monetization": "free"
+}
