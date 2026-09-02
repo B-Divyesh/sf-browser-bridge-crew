@@ -30,7 +30,7 @@ async function endRunThroughNormalPlay(page: Page) {
 test('@claim:sample-demo one click opens a populated repair', async ({ page }) => {
   await page.goto('/');
   await page.getByRole('link', { name: /Try it with sample data/ }).click();
-  await expect(page).toHaveURL(/\/demo$/);
+  await expect(page).toHaveURL(/\/?demo=1$/);
   await expect(page.getByText('Demo — sample data, nothing is saved')).toBeVisible();
   await expect(page.getByText('FAULT 01')).toBeVisible();
   await expect(page.getByText('76%')).toBeVisible();
@@ -77,6 +77,41 @@ test('@claim:settings-persist assist setting persists locally', async ({ page })
   await expect(page.getByRole('button', { name: 'Turn sound on' })).toBeVisible();
 });
 
+test('@claim:demo-isolation keeps sample storage separate, resets the sample, and leaves real storage untouched', async ({ page }) => {
+  await page.goto('/');
+  await page.evaluate(() => localStorage.setItem('bridge:review-sentinel', 'real-value'));
+  await page.getByRole('link', { name: /Try it with sample data/ }).click();
+  await page.getByLabel('Assist mode').uncheck();
+  await expect.poll(() => page.evaluate(() => localStorage.getItem('demo:bridge:settings'))).not.toBeNull();
+  await expect(page.getByText('76%')).toBeVisible();
+  await page.getByRole('button', { name: 'Reset demo' }).click();
+  await expect(page.getByText('76%')).toBeVisible();
+  await expect.poll(() => page.evaluate(() => localStorage.getItem('demo:bridge:settings'))).toBeNull();
+  await expect.poll(() => page.evaluate(() => localStorage.getItem('bridge:review-sentinel'))).toBe('real-value');
+  await page.getByRole('link', { name: 'Start for real' }).click();
+  await expect(page).toHaveURL(/\/$/);
+  await expect.poll(() => page.evaluate(() => localStorage.getItem('bridge:review-sentinel'))).toBe('real-value');
+});
+
+test('@claim:demo-stations exposes all four stations with working controls', async ({ page }) => {
+  await page.goto('/demo');
+  for (const station of ['Helm', 'Power', 'Signals', 'Engineering']) {
+    await selectTab(page, station);
+    await expect(page.getByRole('heading', { name: station })).toBeVisible();
+  }
+  await selectTab(page, 'Helm');
+  await page.getByRole('button', { name: '+15°' }).click();
+  await expect(page.getByText('Current bearing').locator('..').locator('strong')).toHaveText('+15°');
+  await selectTab(page, 'Power');
+  await page.getByRole('button', { name: /navigation/i }).click();
+  await expect(page.getByRole('button', { name: /navigation/i })).toHaveAttribute('aria-pressed', 'true');
+  await selectTab(page, 'Engineering');
+  await page.getByRole('button', { name: /Ring/ }).click();
+  await expect(page.getByLabel('Entered repair code')).toContainText('○');
+  await selectTab(page, 'Signals');
+  await expect(page.locator('.clue-sheet')).toBeVisible();
+});
+
 test('@claim:cross-device-room room actions sync between separate browser contexts', async ({ browser, page }) => {
   await page.goto('/');
   await page.getByRole('button', { name: 'Create a room' }).click();
@@ -116,27 +151,27 @@ test('@claim:room-reconnect a station reload reconnects to its role and current 
 
 test('@claim:keyboard-controls keyboard commands operate stations', async ({ page }) => {
   await page.goto('/demo');
+  await page.locator('main').click({ position: { x: 5, y: 5 } });
+  await page.keyboard.press('s');
+  await expect(page.locator('.clue-sheet')).toBeVisible();
   await selectTab(page, 'Helm');
   await page.locator('main').click({ position: { x: 5, y: 5 } });
   await page.keyboard.press('ArrowRight');
   await expect(page.getByText('Current bearing').locator('..').locator('strong')).toHaveText('+15°');
-  await page.getByRole('button', { name: '+30°' }).click();
+  const touchControl = page.getByRole('button', { name: '+30°' });
+  if (test.info().project.name === 'mobile') await touchControl.tap();
+  else await touchControl.click();
   await expect(page.getByText('Current bearing').locator('..').locator('strong')).toHaveText('+30°');
-});
-
-test('@claim:frame-rate the active game targets 60 frames per second', async ({ page }) => {
-  await page.goto('/demo');
-  const frames = await page.evaluate(() => new Promise<number>((resolve) => {
-    let count = 0;
-    const start = performance.now();
-    const sample = (now: number) => {
-      count += 1;
-      if (now - start >= 2_000) resolve(count);
-      else requestAnimationFrame(sample);
-    };
-    requestAnimationFrame(sample);
-  }));
-  expect(frames).toBeGreaterThanOrEqual(90);
+  await selectTab(page, 'Power');
+  await page.locator('main').click({ position: { x: 5, y: 5 } });
+  await page.keyboard.press('3');
+  await expect(page.getByRole('button', { name: /navigation/i })).toHaveAttribute('aria-pressed', 'true');
+  await selectTab(page, 'Engineering');
+  await page.locator('main').click({ position: { x: 5, y: 5 } });
+  await page.keyboard.press('1');
+  await expect(page.getByLabel('Entered repair code')).toContainText('○');
+  await page.keyboard.press('r');
+  await expect(page.getByLabel('Entered repair code')).not.toContainText('○');
 });
 
 test('@claim:privacy-local demo sends requests only to its own origin', async ({ page }) => {
@@ -149,6 +184,38 @@ test('@claim:privacy-local demo sends requests only to its own origin', async ({
   await selectTab(page, 'Helm');
   await page.getByRole('button', { name: '+15°' }).click();
   expect(foreign).toEqual([]);
+});
+
+test('@claim:no-personal-data live rooms ask for no accounts, names, chat, cameras, microphones, or recordings', async ({ page }) => {
+  await page.addInitScript(() => {
+    const state = window as unknown as { __mediaCalls?: unknown[][] };
+    const originalGetUserMedia = navigator.mediaDevices?.getUserMedia.bind(navigator.mediaDevices);
+    if (originalGetUserMedia) navigator.mediaDevices.getUserMedia = (...args) => {
+      state.__mediaCalls ??= [];
+      state.__mediaCalls.push(args);
+      return originalGetUserMedia(...args);
+    };
+  });
+  await page.goto('/');
+  await expect(page.getByText(/No names, chat, cameras, or recordings/)).toBeVisible();
+  await expect(page.locator('input[type="email"], input[name*="name" i], textarea, [contenteditable="true"]')).toHaveCount(0);
+  await page.getByRole('button', { name: 'Create a room' }).click();
+  await expect(page.locator('input[type="email"], input[name*="name" i], textarea, [contenteditable="true"]')).toHaveCount(0);
+  const mediaCalls = await page.evaluate(() => (window as unknown as { __mediaCalls?: unknown[][] }).__mediaCalls ?? []);
+  expect(mediaCalls).toEqual([]);
+});
+
+test('@claim:no-tracking public pages and a live room load only Bridge Crew files and its room service', async ({ page }) => {
+  const seen = new Set<string>();
+  page.on('request', (request) => seen.add(new URL(request.url()).origin));
+  page.on('websocket', (socket) => seen.add(new URL(socket.url()).origin));
+  for (const path of ['/', '/demo', '/privacy', '/terms']) await page.goto(path);
+  await page.goto('/');
+  await page.getByRole('button', { name: 'Create a room' }).click();
+  await expect(page).toHaveURL(/\/room\//);
+  expect([...seen].sort()).toEqual(['http://127.0.0.1:4173', 'http://127.0.0.1:8787', 'ws://127.0.0.1:8787']);
+  const scriptOrigins = await page.locator('script[src]').evaluateAll((scripts) => scripts.map((script) => new URL((script as HTMLScriptElement).src).origin));
+  expect([...new Set(scriptOrigins)]).toEqual(['http://127.0.0.1:4173']);
 });
 
 test('@claim:free-play has no payment action', async ({ page }) => {

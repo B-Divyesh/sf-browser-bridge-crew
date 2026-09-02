@@ -1,0 +1,1 @@
+Run a 12-minute cooperative spaceship repair game across 4–8 browser tabs.

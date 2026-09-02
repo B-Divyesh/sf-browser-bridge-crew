@@ -2,7 +2,8 @@
 
 ## Entry point
 
-Open `/demo` or `https://browser-bridge-crew.sociobot.in/demo`.
+Open `/?demo=1` or `https://browser-bridge-crew.sociobot.in/?demo=1`.
+`/demo` remains a stable direct route for offline verification.
 
 The first demo screen is an active repair with this sample state:
 

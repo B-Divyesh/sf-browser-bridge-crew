@@ -19,11 +19,27 @@ describe('deterministic game core', () => {
     expect(state.fault.id).toBe(2);
   });
 
-  it('can lose through missed faults and win when time ends', () => {
+  it('can lose through missed faults', () => {
     let lost = startGame(createGame(31, false));
     while (lost.phase === 'running') lost = stepGame(lost, 60_000);
     expect(lost.phase).toBe('lost');
-    const won = stepGame(startGame(createGame(31, true, 1_000)), 1_001);
+  });
+
+  it('@claim:successful-run reaches the success summary when the exact twelve-minute clock ends above zero', () => {
+    const won = stepGame(startGame(createGame(31, true)), 12 * 60_000);
     expect(won.phase).toBe('won');
+    expect(won.remainingMs).toBe(0);
+    expect(won.integrity).toBe(100);
+  });
+
+  it('@claim:assist-behavior gives each fault more response time and prevents incorrect-repair penalties', () => {
+    let standard = startGame(createGame(91, false));
+    let assisted = startGame(createGame(91, true));
+    expect(assisted.fault.limitMs).toBe(60_000);
+    expect(assisted.fault.limitMs).toBeGreaterThan(standard.fault.limitMs);
+    standard = attemptRepair(standard);
+    assisted = attemptRepair(assisted);
+    expect(standard.integrity).toBe(88);
+    expect(assisted.integrity).toBe(100);
   });
 });

@@ -13,6 +13,11 @@ const ACTIONS = new Set(['scan', 'heading', 'power', 'glyph', 'clear', 'repair']
 const PROD_ORIGIN = 'https://browser-bridge-crew.sociobot.in';
 const BUILD_SHA = process.env.BUILD_SHA || process.env.SOURCE_COMMIT || 'development';
 
+// Keep this inventory deliberately small. It is used by the privacy regression
+// test as well as by operators inspecting the product-owned SQLite file.
+export const ROOM_STORAGE_COLUMNS = ['code', 'host_token', 'state', 'created_at', 'updated_at', 'expires_at'];
+export const PLAYER_STORAGE_COLUMNS = ['token', 'room_code', 'role', 'created_at'];
+
 function code() {
   return Array.from({ length: 5 }, () => CODE_ALPHABET[randomInt(CODE_ALPHABET.length)]).join('');
 }

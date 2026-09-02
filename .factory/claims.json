@@ -1,114 +1,24 @@
 [
-  {
-    "id": "sample-demo",
-    "claim": "Try it with sample data opens a repair already in progress.",
-    "where": "landing first screen, README",
-    "test": "npm test -- --grep @claim:sample-demo",
-    "sandbox": "fresh browser context at /; follow the one-click demo action"
-  },
-  {
-    "id": "playable-first-screen",
-    "claim": "The first screen includes a playable sample fault.",
-    "where": "landing first screen",
-    "test": "npm test -- --grep @claim:playable-first-screen",
-    "sandbox": "fresh landing page at desktop and 390px; scan the visible sample fault and assert the clue appears"
-  },
-  {
-    "id": "complete-run",
-    "claim": "Players can repair a fault and reach the end screen.",
-    "where": "game, README",
-    "test": "npm test -- --grep @claim:complete-run",
-    "sandbox": "fresh /demo state; solve one deterministic fault and finish the clock"
-  },
-  {
-    "id": "round-length",
-    "claim": "Each run starts with a 12-minute clock.",
-    "where": "landing first screen, game, README",
-    "test": "npm test -- --grep @claim:round-length",
-    "sandbox": "fresh /demo state; inspect the deterministic duration in milliseconds"
-  },
-  {
-    "id": "deterministic-seed",
-    "claim": "Each seed creates a repeatable fault sequence.",
-    "where": "README, end screen",
-    "test": "npm run test:unit -- -t @claim:deterministic-seed",
-    "sandbox": "deterministic core; generate the same indexed fault twice and compare every field"
-  },
-  {
-    "id": "replay",
-    "claim": "Playing again resets the run.",
-    "where": "end screen, README",
-    "test": "npm test -- --grep @claim:replay",
-    "sandbox": "fresh /demo state; finish and restart the same seed"
-  },
-  {
-    "id": "settings-persist",
-    "claim": "Assist and sound settings persist locally.",
-    "where": "game settings, README",
-    "test": "npm test -- --grep @claim:settings-persist",
-    "sandbox": "fresh /demo state; change assist mode and reload"
-  },
-  {
-    "id": "cross-device-room",
-    "claim": "Room actions sync between separate browser sessions and devices.",
-    "where": "landing start panel, README",
-    "test": "npm test -- --grep @claim:cross-device-room",
-    "sandbox": "two isolated browser contexts; create a host, join Signals, then scan a fault across the WebSocket relay"
-  },
-  {
-    "id": "room-reconnect",
-    "claim": "A station reconnects to its role and current room state.",
-    "where": "game connection status, README",
-    "test": "npm test -- --grep @claim:room-reconnect",
-    "sandbox": "fresh room; join Helm in an isolated context, reload, and verify the same role and current state return"
-  },
-  {
-    "id": "keyboard-controls",
-    "claim": "The game has keyboard and touch controls.",
-    "where": "landing facts, README",
-    "test": "npm test -- --grep @claim:keyboard-controls",
-    "sandbox": "fresh /demo state; adjust Helm with an Arrow key and a visible control"
-  },
-  {
-    "id": "frame-rate",
-    "claim": "The active game targets 60 frames per second.",
-    "where": "README, handoff",
-    "test": "npm test -- --grep @claim:frame-rate",
-    "sandbox": "fresh /demo state; count animation frames for one second and require at least 50"
-  },
-  {
-    "id": "privacy-local",
-    "claim": "The demo asks for no personal data and sends no data to another origin.",
-    "where": "demo banner, privacy, README",
-    "test": "npm test -- --grep @claim:privacy-local",
-    "sandbox": "fresh /demo state; record every request during a station action"
-  },
-  {
-    "id": "free-play",
-    "claim": "Bridge Crew is free to play.",
-    "where": "landing facts, footer, README",
-    "test": "npm test -- --grep @claim:free-play",
-    "sandbox": "fresh landing page; confirm the free label and absence of payment actions"
-  },
-  {
-    "id": "room-expiry",
-    "claim": "Room state expires after 20 minutes.",
-    "where": "landing privacy section, privacy, README",
-    "test": "npm run test:unit -- -t @claim:room-expiry",
-    "sandbox": "isolated in-memory SQLite service with a short configured lifetime; create a room and assert a later lookup returns 404"
-  },
-  {
-    "id": "rate-limit",
-    "claim": "The room service limits rapid requests.",
-    "where": "README, privacy",
-    "test": "npm run test:unit -- -t @claim:rate-limit",
-    "sandbox": "isolated room service with a three-request limit; assert the next request returns 429 and Retry-After"
-  },
-  {
-    "id": "offline-reload",
-    "claim": "The demo works offline after the first visit.",
-    "where": "README",
-    "test": "npm test -- --grep @claim:offline-reload",
-    "sandbox": "fresh browser context; load /demo, wait for its service worker, go offline, and reload"
-  }
+  {"id":"sample-demo","claim":"Try it with sample data opens a repair already in progress.","where":"landing first screen, README","test":"npm test -- --grep @claim:sample-demo","sandbox":"fresh browser context at /; follow the one-click demo action"},
+  {"id":"playable-first-screen","claim":"The first screen includes a playable sample fault.","where":"landing first screen","test":"npm test -- --grep @claim:playable-first-screen","sandbox":"fresh landing page; scan the visible sample fault and assert the clue appears"},
+  {"id":"demo-isolation","claim":"Demo data stays separate from real browser data, and Reset demo restores the sample.","where":"demo banner, README, demo guide","test":"npm test -- --grep @claim:demo-isolation","sandbox":"seed a real-storage sentinel; change demo settings, reset, leave demo, and assert only demo: keys changed"},
+  {"id":"demo-stations","claim":"The full demo includes Helm, Power, Signals, and Engineering.","where":"landing preview","test":"npm test -- --grep @claim:demo-stations","sandbox":"fresh /demo state; open every station and operate a meaningful control in each"},
+  {"id":"complete-run","claim":"Players can repair a fault and reach the end screen.","where":"game, README","test":"npm test -- --grep @claim:complete-run","sandbox":"fresh /demo state; solve one deterministic fault and reach the end screen through visible controls"},
+  {"id":"successful-run","claim":"A run succeeds when the 12-minute clock ends with integrity above zero.","where":"README","test":"npm run test:unit -- -t @claim:successful-run","sandbox":"deterministic core; advance the exact 720,000 ms game clock while integrity is positive"},
+  {"id":"round-length","claim":"Each run starts with a 12-minute clock.","where":"landing first screen, game, README","test":"npm test -- --grep @claim:round-length","sandbox":"fresh room; inspect the displayed 12:00 duration"},
+  {"id":"deterministic-seed","claim":"Replaying the same numbered game repeats its faults.","where":"README, end screen","test":"npm run test:unit -- -t @claim:deterministic-seed","sandbox":"deterministic core; generate the same indexed fault twice and compare every field"},
+  {"id":"replay","claim":"Playing again resets the run.","where":"end screen, README","test":"npm test -- --grep @claim:replay","sandbox":"fresh /demo state; finish and restart the same seed"},
+  {"id":"settings-persist","claim":"Assist and sound settings persist locally.","where":"game settings, README","test":"npm test -- --grep @claim:settings-persist","sandbox":"fresh /demo state; change both settings and reload"},
+  {"id":"assist-behavior","claim":"Assist mode adds response time and removes integrity penalties.","where":"game settings, README","test":"npm run test:unit -- -t @claim:assist-behavior","sandbox":"deterministic core; compare a fault limit and incorrect repair with Assist on and off"},
+  {"id":"cross-device-room","claim":"Room actions sync between separate browser sessions and devices.","where":"landing start panel, README","test":"npm test -- --grep @claim:cross-device-room","sandbox":"two isolated browser contexts; create a host, join Signals, then scan a fault across the room service"},
+  {"id":"room-reconnect","claim":"A station reconnects to its role and current room state.","where":"game connection status, README","test":"npm test -- --grep @claim:room-reconnect","sandbox":"fresh room; join Helm in an isolated context, reload, and verify the same role and current state return"},
+  {"id":"player-capacity","claim":"Four to eight players can share the four station controls; a ninth player is told the room is full.","where":"landing first screen, how it works, README","test":"npm run test:unit -- -t @claim:player-capacity","sandbox":"isolated room service; join all four roles, add shared roles to eight, then assert a ninth join returns its visible error"},
+  {"id":"keyboard-controls","claim":"The game has keyboard and touch controls.","where":"landing facts, README","test":"npm test -- --grep @claim:keyboard-controls","sandbox":"fresh /demo state; use Arrow, S, number, and R keys plus a tap on a station control"},
+  {"id":"privacy-local","claim":"The demo asks for no personal data and sends no data to another origin.","where":"demo banner, privacy, README","test":"npm test -- --grep @claim:privacy-local","sandbox":"fresh /demo state; record every request during a station action"},
+  {"id":"no-personal-data","claim":"Live rooms ask for no accounts, names, chat, cameras, microphones, or recordings.","where":"landing privacy facts, privacy, README","test":"npm test -- --grep @claim:no-personal-data","sandbox":"fresh landing-to-host flow with a pre-load media API recorder and form inventory"},
+  {"id":"room-storage","claim":"The room service stores game progress, station choices, and random codes used to reconnect.","where":"landing privacy section, privacy, README","test":"npm run test:unit -- -t @claim:room-storage","sandbox":"isolated file-backed SQLite room service; inspect its schema and rows after a station joins"},
+  {"id":"no-tracking","claim":"The game includes no analytics or files loaded from another company.","where":"landing privacy section, privacy, README","test":"npm test -- --grep @claim:no-tracking","sandbox":"fresh public routes plus a live room; record request and script origins"},
+  {"id":"free-play","claim":"Bridge Crew is free to play.","where":"landing facts, footer, README","test":"npm test -- --grep @claim:free-play","sandbox":"fresh landing page; confirm the free label and absence of payment actions"},
+  {"id":"room-expiry","claim":"Rooms are deleted 20 minutes after their last update.","where":"landing privacy section, privacy, README","test":"npm run test:unit -- -t @claim:room-expiry","sandbox":"isolated room service; assert the production default is 1,200,000 ms and a short configured expiry deletes the room"},
+  {"id":"offline-reload","claim":"The demo works offline after the first visit.","where":"README","test":"npm test -- --grep @claim:offline-reload","sandbox":"fresh browser context; load /demo, wait for its service worker, go offline, and reload"}
 ]

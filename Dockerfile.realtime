@@ -4,6 +4,6 @@ WORKDIR /app
 COPY package.json package-lock.json ./
 RUN npm ci --omit=dev
 COPY backend ./backend
-ENV NODE_ENV=production PORT=8080 DB_PATH=:memory: BUILD_SHA=$BUILD_SHA
+ENV NODE_ENV=production PORT=8080 DB_PATH=/data/rooms.sqlite WO_DATA_DIR=/data BUILD_SHA=$BUILD_SHA
 EXPOSE 8080
 CMD ["node", "backend/server.mjs"]

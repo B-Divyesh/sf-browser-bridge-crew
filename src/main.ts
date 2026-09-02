@@ -71,7 +71,7 @@ function header(): string {
     <header class="site-header">
       <a class="wordmark" href="/" data-route aria-label="Bridge Crew home">${icon('mark')}<span>Bridge Crew</span></a>
       <nav aria-label="Main navigation">
-        <a href="/demo" data-route>Demo</a>
+        <a href="/?demo=1" data-route>Demo</a>
         <a href="/#how">How it works</a>
         <a href="/privacy" data-route>Privacy</a>
       </nav>
@@ -89,7 +89,7 @@ function footer(): string {
 function setPage(title: string, description: string, content: string): void {
   document.title = title;
   document.querySelector<HTMLMetaElement>('meta[name="description"]')!.content = description;
-  document.querySelector<HTMLLinkElement>('link[rel="canonical"]')!.href = `https://browser-bridge-crew.sociobot.in${location.pathname}`;
+  document.querySelector<HTMLLinkElement>('link[rel="canonical"]')!.href = `https://browser-bridge-crew.sociobot.in${location.pathname}${location.search === '?demo=1' ? location.search : ''}`;
   document.querySelector<HTMLMetaElement>('meta[property="og:title"]')!.content = title;
   document.querySelector<HTMLMetaElement>('meta[property="og:description"]')!.content = description;
   document.querySelector<HTMLMetaElement>('meta[name="twitter:title"]')!.content = title;
@@ -114,7 +114,7 @@ function homePage(): void {
           <h1 tabindex="-1">Run a browser-tab spaceship repair game</h1>
           <p class="lede">For teachers and group hosts sharing one display while players control four station panels.</p>
           <div class="hero-actions">
-            <a class="button primary" href="/demo" data-route>Try it with sample data ${icon('arrow')}</a>
+            <a class="button primary" href="/?demo=1" data-route>Try it with sample data ${icon('arrow')}</a>
             <span>Opens a repair already in progress.</span>
           </div>
           <ul class="plain-facts" aria-label="Game facts"><li>Free to play</li><li>No accounts or chat</li><li>Keyboard and touch controls</li></ul>
@@ -139,7 +139,7 @@ function homePage(): void {
         <ol class="steps"><li><span>01</span><div><h3>Create a room</h3><p>Project the bridge and read the five-character room code aloud.</p></div></li><li><span>02</span><div><h3>Open four stations</h3><p>Assign Helm, Power, Signals, and Engineering. Extra players share controls.</p></div></li><li><span>03</span><div><h3>Repair together</h3><p>Call out each clue, align the ship, route power, and enter the repair code.</p></div></li></ol>
       </section>
 
-      <section class="limits" aria-labelledby="limits-title"><div><p class="eyebrow">Privacy and limits</p><h2 id="limits-title">A game, not a student account</h2></div><ul><li>No names, chat, cameras, or recordings.</li><li>The room service stores only game state and random reconnect tokens.</li><li>Rooms expire after 20 minutes. The game includes no analytics.</li></ul></section>
+      <section class="limits" aria-labelledby="limits-title"><div><p class="eyebrow">Privacy and limits</p><h2 id="limits-title">Privacy and room data</h2></div><ul><li>No names, chat, cameras, or recordings.</li><li>The room service stores game progress, station choices, and random codes used to reconnect.</li><li>Rooms are deleted 20 minutes after their last update. The game includes no analytics.</li></ul></section>
     </main>`,
   );
 
@@ -194,22 +194,22 @@ function previewMarkup(): string {
 
 function legalPage(kind: 'privacy' | 'terms'): void {
   const privacy = kind === 'privacy';
-  const heading = privacy ? 'Your game stays in your browser' : 'Use Bridge Crew fairly';
+  const heading = privacy ? 'What your browser and the room service store' : 'Use Bridge Crew fairly';
   const title = privacy ? 'Privacy — Bridge Crew' : 'Terms — Bridge Crew';
   setPage(title, privacy ? 'Bridge Crew stores settings locally and short-lived room state on its own service.' : 'The terms for using the free Bridge Crew browser game.', `<main id="main" class="text-page"><p class="eyebrow">${privacy ? 'Privacy' : 'Terms'}</p><h1 tabindex="-1">${heading}</h1>${privacy ? `
     <p>Bridge Crew does not ask for names, email addresses, accounts, chat, camera access, or microphone access.</p>
     <h2>What this browser stores</h2><p>The game stores sound, assist, best-score settings, and a random room reconnect token. Demo data uses keys that start with <code>demo:</code>.</p>
-    <h2>What the room service stores</h2><p>Room codes, station roles, and game state go to the Bridge Crew room service. Rooms expire after 20 minutes. The service stores no names or chat.</p>
-    <h2>What else leaves this browser</h2><p>The site loads its own pages, art, font, and scripts. It includes no advertising, analytics, or third-party runtime services.</p>
+    <h2>What the room service stores</h2><p>Live rooms send game progress, station choices, and random reconnect codes to Bridge Crew’s room service. Rooms are deleted 20 minutes after their last update. The service stores no names or chat.</p>
+    <h2>What else leaves this browser</h2><p>The site loads its own pages, art, font, and scripts. It includes no advertising, analytics, or files loaded from another company.</p>
     <h2>Clear stored data</h2><p>Use Reset demo inside the demo. You can also clear this site’s storage in your browser settings.</p>` : `
-    <p>Bridge Crew is free classroom-safe software. You may use it at school, at home, or in a youth group.</p>
+    <p>Bridge Crew is free software for supervised classroom, home, or youth-group play.</p>
     <h2>Keep play safe</h2><p>Do not use room codes to send personal information. Stop the game if a participant needs a break.</p>
     <h2>No warranty</h2><p>The game is provided as-is under the MIT License. The host is responsible for supervising each session.</p>
     <h2>Changes</h2><p>These terms may change with a future release. This version took effect on 2 September 2026.</p>`}</main>`);
 }
 
 function notFoundPage(): void {
-  setPage('Page not found — Bridge Crew', 'This Bridge Crew page was not found.', `<main id="main" class="not-found"><div class="lost-signal" aria-hidden="true"><i></i><i></i><i></i></div><p class="eyebrow">Error 404</p><h1 tabindex="-1">This station is not on the bridge</h1><p>The address may be old or incomplete.</p><a class="button primary" href="/" data-route>Return to the bridge</a></main>`);
+  setPage('Page not found — Bridge Crew', 'This Bridge Crew page was not found.', `<main id="main" class="not-found"><div class="lost-signal" aria-hidden="true"><i></i><i></i><i></i></div><p class="eyebrow">Error 404</p><h1 tabindex="-1">Page not found</h1><p>The address may be old or incomplete.</p><a class="button primary" href="/" data-route>Return home</a></main>`);
 }
 
 function stationPicker(room: RoomRecord): void {
@@ -514,7 +514,8 @@ function renderRoute(): void {
   routeAbort.abort();
   routeAbort = new AbortController();
   const path = location.pathname.replace(/\/$/, '') || '/';
-  if (path === '/') homePage();
+  if (new URLSearchParams(location.search).get('demo') === '1') mountGame({ demo: true, host: true, station: null });
+  else if (path === '/') homePage();
   else if (path === '/demo') mountGame({ demo: true, host: true, station: null });
   else if (path === '/privacy') legalPage('privacy');
   else if (path === '/terms') legalPage('terms');

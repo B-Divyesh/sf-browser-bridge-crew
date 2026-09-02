@@ -3,7 +3,7 @@
 Run a 12-minute cooperative spaceship repair game for 4–8 players. A host
 projects the ship while players operate Helm, Power, Signals, and Engineering.
 
-[Try it with sample data](https://browser-bridge-crew.sociobot.in/demo). The
+[Try it with sample data](https://browser-bridge-crew.sociobot.in/?demo=1). The
 demo opens a repair already in progress and keeps sample data separate.
 The first screen also includes a sample fault that visitors can scan.
 
@@ -13,8 +13,8 @@ Bridge Crew is for teachers and youth-group hosts using managed browsers. It
 needs no student accounts, names, chat, cameras, or microphones. The game is
 free.
 
-The static game connects to its own WebSocket room service. Players can use
-separate school devices without accounts or third-party realtime services.
+Each browser connects through Bridge Crew’s room service. Players can join from
+separate school devices without creating accounts.
 
 ## Play
 
@@ -26,16 +26,15 @@ separate school devices without accounts or third-party realtime services.
 
 A run succeeds when the 12-minute clock ends with integrity above zero. It ends
 early when missed or incorrect repairs reduce integrity to zero. Assist mode
-adds response time and removes integrity penalties. Each seed creates a
-repeatable fault sequence.
+adds response time and removes integrity penalties. Replaying the same numbered
+game repeats its faults.
 
 Keyboard and touch controls work throughout the game. Arrow keys set Helm,
 `S` scans Signals, number keys operate Power or Engineering, and `R` repairs.
-Sound and assist settings persist locally. The active loop targets 60 frames per
-second.
+Sound and assist settings persist locally.
 
-Room state expires after 20 minutes. A station reconnects with a random token
-stored for that browser tab. The service limits rapid requests.
+Rooms are deleted 20 minutes after their last update. Each tab stores a random
+code so its station reconnects after a reload.
 The sample demo stays on the device and works offline after its first visit.
 
 ## Develop
@@ -74,14 +73,14 @@ Each product claim and its matching test are listed in
 
 Publish `dist/` to Azure Static Web Apps. Deploy `Dockerfile.realtime` as the
 product-owned `sf-browser-bridge-crew-realtime` container app with one replica.
-Rooms are transient and expire after 20 minutes. The production frontend
+Rooms are deleted 20 minutes after their last update. The production frontend
 connects only to that service.
 
 ## Privacy and license
 
-Settings and demo data use browser storage. Live rooms send game state, station
-roles, and random reconnect tokens to the product-owned room service. There are
-no names, analytics, third-party scripts, or runtime CDNs. See `/privacy` and
+Settings and demo data use browser storage. Live rooms send game progress,
+station choices, and random reconnect codes to the product-owned room service.
+There are no names, analytics, third-party scripts, or files loaded from another company. See `/privacy` and
 `/terms` in the running site.
 
 Bridge Crew is available under the [MIT License](LICENSE). The original scene

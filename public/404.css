@@ -1,8 +1,20 @@
-body { display: grid; min-height: 100vh; margin: 0; grid-template-rows: auto 1fr auto; background: #07131a; color: #f4f1df; font: 18px/1.5 system-ui, sans-serif; }
-header, footer { width: min(620px, calc(100% - 40px)); margin: auto; padding: 24px 0; border-bottom: 1px solid #35505a; }
-footer { border-top: 1px solid #35505a; border-bottom: 0; color: #b8c8c5; font-size: 14px; }
-main { width: min(620px, calc(100% - 40px)); }
-h1 { max-width: 12ch; font-size: clamp(2.5rem, 8vw, 5rem); line-height: 1; }
-p { color: #b8c8c5; }
-a { color: #f4f1df; }.button { display: inline-block; padding: 13px 18px; border-radius: 3px; background: #ffd166; color: #111b1e; font-weight: 700; }
-a:focus-visible { outline: 3px solid #62d6bd; outline-offset: 4px; }
+:root { color-scheme: dark; font-family: Inter, ui-sans-serif, system-ui, sans-serif; background: #07131a; color: #f4f1df; }
+* { box-sizing: border-box; }
+body { max-width: 1080px; min-width: 320px; margin: auto; padding: 0 20px; font-size: 17px; line-height: 1.55; }
+a { color: #f4f1df; text-underline-offset: .24em; }
+a:hover { color: #ffd166; }
+:focus-visible { outline: 3px solid #ffd166; outline-offset: 4px; }
+.skip-link { position: fixed; top: 8px; left: 8px; padding: 12px 16px; background: #ffd166; color: #111b1e; transform: translateY(-160%); }
+.skip-link:focus { transform: none; }
+header, footer { display: flex; align-items: center; justify-content: space-between; gap: 20px; min-height: 80px; border-bottom: 1px solid rgba(184,200,197,.25); }
+header nav, footer nav { display: flex; flex-wrap: wrap; gap: 20px; }
+.wordmark { font-weight: 750; text-decoration: none; }
+main { min-height: 62vh; padding: 112px 0; }
+main:focus { outline: none; }
+h1 { max-width: 12ch; margin: 0 0 24px; font-size: clamp(2.5rem, 8vw, 5rem); line-height: .98; letter-spacing: -.045em; }
+main p:not(.eyebrow) { max-width: 40ch; color: #b8c8c5; }
+.eyebrow { color: #ffd166; font-size: .76rem; font-weight: 800; letter-spacing: .15em; text-transform: uppercase; }
+.button { display: inline-flex; min-height: 48px; align-items: center; padding: 11px 18px; background: #ffd166; color: #111b1e; font-weight: 750; text-decoration: none; }
+footer { display: grid; grid-template-columns: 1fr auto; padding: 34px 0 48px; color: #b8c8c5; font-size: .82rem; }
+footer p { margin: 0; } footer p:last-child { grid-column: 1 / -1; }
+@media (max-width: 600px) { body { padding: 0 12px; font-size: 16px; } header { min-height: 64px; } header nav a:nth-child(2) { display: none; } footer { grid-template-columns: 1fr; } }
