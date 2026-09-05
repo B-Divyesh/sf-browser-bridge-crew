@@ -8,7 +8,8 @@ a:hover { color: #ffd166; }
 .skip-link:focus { transform: none; }
 header, footer { display: flex; align-items: center; justify-content: space-between; gap: 20px; min-height: 80px; border-bottom: 1px solid rgba(184,200,197,.25); }
 header nav, footer nav { display: flex; flex-wrap: wrap; gap: 20px; }
-.wordmark { font-weight: 750; text-decoration: none; }
+.wordmark { display: inline-flex; min-width: 44px; min-height: 44px; align-items: center; font-weight: 750; text-decoration: none; }
+header nav a, footer nav a { display: inline-flex; min-width: 44px; min-height: 44px; align-items: center; justify-content: center; }
 main { min-height: 62vh; padding: 112px 0; }
 main:focus { outline: none; }
 h1 { max-width: 12ch; margin: 0 0 24px; font-size: clamp(2.5rem, 8vw, 5rem); line-height: .98; letter-spacing: -.045em; }

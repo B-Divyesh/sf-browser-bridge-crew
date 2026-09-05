@@ -301,6 +301,24 @@ test('pages have one h1 and no serious accessibility findings', async ({ page })
   }
 });
 
+test('navigation links provide 44 pixel touch targets on application and static routes', async ({ page }) => {
+  for (const path of ['/', '/demo', '/privacy', '/terms', '/404.html']) {
+    await page.goto(path);
+    const links = page.locator('header a, footer a');
+    const count = await links.count();
+    expect(count, `${path} should include header and footer navigation`).toBeGreaterThan(0);
+
+    for (let index = 0; index < count; index += 1) {
+      const link = links.nth(index);
+      if (!await link.isVisible()) continue;
+      const box = await link.boundingBox();
+      expect(box, `${path} navigation link ${index} should have a clickable box`).not.toBeNull();
+      expect(box!.width, `${path} navigation link ${index} should be at least 44px wide`).toBeGreaterThanOrEqual(44);
+      expect(box!.height, `${path} navigation link ${index} should be at least 44px high`).toBeGreaterThanOrEqual(44);
+    }
+  }
+});
+
 test('local routes load without console errors or broken links', async ({ page }) => {
   const errors: string[] = [];
   page.on('console', (message) => { if (message.type() === 'error') errors.push(message.text()); });
