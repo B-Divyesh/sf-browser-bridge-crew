@@ -72,6 +72,10 @@ repair symbol; Helm aligns the ship; Power routes power; Engineering enters
 the repair. Correct work repairs integrity and adds score. Wrong work costs
 integrity. A run ends early at zero integrity or succeeds when the timer ends.
 
+The active loop uses 60 fixed updates per second and renders on each browser
+frame. Performance is measured on a 360 × 640 Moto G4 browser profile with
+touch and a 4× CPU slowdown.
+
 The first two minutes use one fault at a time. Minutes 3–8 shorten the response
 window and alternate modules. Minutes 9–12 can overlap two faults. Assist mode
 adds response time and removes penalties. The end screen shows outcome, score,

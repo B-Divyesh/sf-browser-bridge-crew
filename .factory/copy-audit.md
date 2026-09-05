@@ -1,4 +1,4 @@
-# Copy audit — repair 1
+# Copy audit — repair 2
 
 ## Landing page
 
@@ -9,6 +9,7 @@
 | Free to play | 3 | `free-play` |
 | No accounts or chat | 4 | `no-personal-data` |
 | Keyboard and touch controls | 4 | `keyboard-controls` |
+| 60 fps in an emulated mid-range phone test | 8 | `mobile-frame-rate` |
 | Project the host screen. Players join from their own browsers with the room code. | 12 | `cross-device-room` |
 | Scan this sample fault. The full demo includes every station. | 11 | `playable-first-screen`, `demo-stations` |
 | Signals must scan the fault before the repair starts. | 9 | Gameplay instruction |

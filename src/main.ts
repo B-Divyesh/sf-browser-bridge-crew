@@ -17,6 +17,7 @@ import {
   type ModuleName,
 } from './game';
 import { createRoom, joinRoom, loadRoom, RealtimeRoom, roomIdentity, type RoomRecord } from './room';
+import { FixedStepLoop, type FrameRateSample } from './loop';
 
 const app = document.querySelector<HTMLDivElement>('#app')!;
 const routeAnnouncement = document.createElement('div');
@@ -117,7 +118,7 @@ function homePage(): void {
             <a class="button primary" href="/?demo=1" data-route>Try it with sample data ${icon('arrow')}</a>
             <span>Opens a repair already in progress.</span>
           </div>
-          <ul class="plain-facts" aria-label="Game facts"><li>Free to play</li><li>No accounts or chat</li><li>Keyboard and touch controls</li></ul>
+          <ul class="plain-facts" aria-label="Game facts"><li>Free to play</li><li>No accounts or chat</li><li>Keyboard and touch controls</li><li>60 fps in an emulated mid-range phone test</li></ul>
         </div>
       </section>
 
@@ -456,25 +457,23 @@ function mountGame(options: { demo: boolean; room?: RoomRecord; host: boolean; s
     if (event.key.toLowerCase() === 'r') dispatch({ type: 'repair' });
   }
 
-  let previous = performance.now();
-  let accumulator = 0;
-  const fixedStep = 1000 / 60;
+  performance.clearMeasures('bridge-active-loop');
+  const loop = new FixedStepLoop(
+    (stepMs) => { state = stepGame(state, stepMs); },
+    (sample: FrameRateSample) => performance.measure('bridge-active-loop', {
+      start: performance.now() - sample.elapsedMs,
+      duration: sample.elapsedMs,
+      detail: sample,
+    }),
+  );
+  let previousUiUpdate = performance.now();
   function frame(now: number): void {
-    if (!document.hidden && !paused && isController) {
-      const elapsed = Math.min(250, now - previous);
-      accumulator += elapsed;
-      let changed = false;
-      while (accumulator >= fixedStep) {
-        state = stepGame(state, fixedStep);
-        accumulator -= fixedStep;
-        changed = true;
-      }
-      if (changed && Math.floor(now / 250) !== Math.floor(previous / 250)) {
-        persistAndBroadcast();
-        updateUi();
-      }
+    const changed = loop.advance(now, !document.hidden && !paused && isController);
+    if (changed && now - previousUiUpdate >= 250) {
+      persistAndBroadcast();
+      updateUi();
+      previousUiUpdate = now;
     }
-    previous = now;
     if (!routeAbort.signal.aborted) requestAnimationFrame(frame);
   }
   renderStation();

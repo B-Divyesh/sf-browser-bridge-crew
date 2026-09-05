@@ -33,6 +33,10 @@ Keyboard and touch controls work throughout the game. Arrow keys set Helm,
 `S` scans Signals, number keys operate Power or Engineering, and `R` repairs.
 Sound and assist settings persist locally.
 
+The active game measured 60 fps on an emulated mid-range phone. The repeatable
+test uses a 360 × 640 Moto G4 profile with touch and a 4× CPU slowdown. It
+allows a five-frame margin for shared test machines.
+
 Rooms are deleted 20 minutes after their last update. Each tab stores a random
 code so its station reconnects after a reload.
 The sample demo stays on the device and works offline after its first visit.

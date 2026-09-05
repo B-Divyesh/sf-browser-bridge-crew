@@ -1,4 +1,4 @@
-import { expect, test, type Page } from '@playwright/test';
+import { devices, expect, test, type Page } from '@playwright/test';
 import AxeBuilder from '@axe-core/playwright';
 
 async function selectTab(page: Page, name: string) {
@@ -174,6 +174,55 @@ test('@claim:keyboard-controls keyboard commands operate stations', async ({ pag
   await expect(page.getByLabel('Entered repair code')).not.toContainText('○');
 });
 
+test('@claim:mobile-frame-rate active play measures 60 fps on the emulated mid-range phone profile', async ({ browser }, testInfo) => {
+  test.skip(testInfo.project.name !== 'mobile', 'The declared performance profile runs once in the mobile project.');
+  const context = await browser.newContext({ ...devices['Moto G4'] });
+  const page = await context.newPage();
+  const session = await context.newCDPSession(page);
+  await session.send('Emulation.setCPUThrottlingRate', { rate: 4 });
+  try {
+    await page.goto('http://127.0.0.1:4173/demo');
+    await expect(page.getByRole('heading', { name: 'Keep the research ship running' })).toBeVisible();
+    const startingSeconds = await displayedSeconds(page);
+
+    await selectTab(page, 'Helm');
+    await page.getByRole('button', { name: '+15°' }).tap();
+    await selectTab(page, 'Power');
+    await page.getByRole('button', { name: /navigation/i }).tap();
+
+    await page.waitForFunction(() => performance.getEntriesByName('bridge-active-loop').length >= 2, undefined, { timeout: 15_000 });
+    const samples = await page.evaluate(() => performance.getEntriesByName('bridge-active-loop').map((entry) => (entry as PerformanceMeasure).detail as {
+      targetFps: number;
+      elapsedMs: number;
+      frames: number;
+      updates: number;
+      fps: number;
+      updateHz: number;
+      longestFrameMs: number;
+    }));
+    const elapsedSeconds = startingSeconds - await displayedSeconds(page);
+    const measuredFps = samples.reduce((total, sample) => total + sample.frames, 0) * 1000
+      / samples.reduce((total, sample) => total + sample.elapsedMs, 0);
+    const measuredUpdateHz = samples.reduce((total, sample) => total + sample.updates, 0) * 1000
+      / samples.reduce((total, sample) => total + sample.elapsedMs, 0);
+
+    console.info(`[mobile-frame-rate] ${measuredFps.toFixed(1)} fps; ${measuredUpdateHz.toFixed(1)} fixed updates/s; 360×640 CSS px; 4× CPU slowdown`);
+    await testInfo.attach('mobile-frame-rate.json', {
+      body: JSON.stringify({ profile: 'Moto G4 / 360×640 / touch / 4× CPU slowdown', measuredFps, measuredUpdateHz, elapsedSeconds, samples }, null, 2),
+      contentType: 'application/json',
+    });
+    expect(samples.every((sample) => sample.targetFps === 60)).toBeTruthy();
+    expect(measuredFps).toBeGreaterThanOrEqual(55);
+    expect(measuredFps).toBeLessThanOrEqual(65);
+    expect(measuredUpdateHz).toBeGreaterThanOrEqual(58);
+    expect(measuredUpdateHz).toBeLessThanOrEqual(62);
+    expect(elapsedSeconds).toBeGreaterThanOrEqual(5);
+  } finally {
+    await session.send('Emulation.setCPUThrottlingRate', { rate: 1 });
+    await context.close();
+  }
+});
+
 test('@claim:privacy-local demo sends requests only to its own origin', async ({ page }) => {
   const foreign: string[] = [];
   page.on('request', (request) => {
@@ -265,3 +314,9 @@ test('local routes load without console errors or broken links', async ({ page }
   await page.goto('/demo');
   expect(errors).toEqual([]);
 });
+
+async function displayedSeconds(page: Page): Promise<number> {
+  const value = await page.locator('#time-value').innerText();
+  const [minutes, seconds] = value.split(':').map(Number);
+  return minutes * 60 + seconds;
+}
