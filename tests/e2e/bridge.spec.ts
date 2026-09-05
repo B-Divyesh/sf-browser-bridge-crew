@@ -319,6 +319,20 @@ test('navigation links provide 44 pixel touch targets on application and static 
   }
 });
 
+test('mobile first screen shows the job, audience, and sample action without scrolling', async ({ page }, testInfo) => {
+  test.skip(testInfo.project.name !== 'mobile', 'The first-screen layout is checked against the configured phone viewport.');
+  await page.goto('/');
+  await expect(page.getByRole('heading', { name: 'Run a browser-tab spaceship repair game' })).toBeVisible();
+  await expect(page.getByText('For teachers and group hosts sharing one display while players control four station panels.')).toBeVisible();
+  const sampleAction = page.getByRole('link', { name: 'Try it with sample data' });
+  await expect(sampleAction).toBeVisible();
+  const isFullyInViewport = await sampleAction.evaluate((link) => {
+    const rect = link.getBoundingClientRect();
+    return rect.top >= 0 && rect.bottom <= window.innerHeight;
+  });
+  expect(isFullyInViewport).toBeTruthy();
+});
+
 test('local routes load without console errors or broken links', async ({ page }) => {
   const errors: string[] = [];
   page.on('console', (message) => { if (message.type() === 'error') errors.push(message.text()); });
