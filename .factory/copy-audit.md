@@ -36,8 +36,15 @@ All landing sentences are 22 words or fewer. No banned plain-words term appears.
 ## README and legal revisions
 
 The README now says “room service,” “files loaded from another company,” and
-“random code” in visitor-facing text. It removes the FPS and rate-limit
-marketing statements. Privacy says live rooms send data to the room service;
-only the demo is local-only. Terms describe supervised play rather than making
-a broad safety guarantee. All sentences in public user-facing prose are 22
-words or fewer.
+“random code” in visitor-facing text. Privacy says live rooms send data to the
+room service; only the demo is local-only. Terms describe supervised play
+rather than making a broad safety guarantee.
+
+| Repair 2 sentence | Words | Result |
+| --- | ---: | --- |
+| The active game measured 60 fps on an emulated mid-range phone. | 11 | `mobile-frame-rate` |
+| The repeatable test uses a 360 × 640 Moto G4 profile with touch and a 4× CPU slowdown. | 18 | `mobile-frame-rate` |
+| It allows a five-frame margin for shared test machines. | 9 | `mobile-frame-rate` |
+
+All sentences in public user-facing prose are 22 words or fewer. No banned
+plain-words term appears.
