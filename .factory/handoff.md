@@ -7,6 +7,10 @@ Implementation `496681bdfef9154b30e6c7210d74492c372b9874` is deployed to
 footer, and static-404 navigation link now has a rendered clickable box at
 least 44 by 44 CSS pixels.
 
+Documentation evidence is committed in
+`58ee7ed2da6377a018bd40c03910f762eb55817d`; this SHA differs because it is a
+report-only commit after the deployed implementation.
+
 The preceding implementation commit was
 `60c0dc06c59d890739f58717a409a37f5b790719`. This handoff is committed later
 as documentation only, so it does not require another product image.
