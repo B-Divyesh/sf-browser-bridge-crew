@@ -1,8 +1,8 @@
-# Bridge Crew verification 5 handoff — PASS
+# Bridge Crew review 2 handoff — PASS
 
 ## Result
 
-Independent verification passed with **0 findings and 0 untested claims**.
+Fresh strict review 2 passed with **0 findings and 0 untested claims**.
 The reviewed implementation is
 `496681bdfef9154b30e6c7210d74492c372b9874`. The later documentation commits
 are `58ee7ed2da6377a018bd40c03910f762eb55817d` and
@@ -10,7 +10,8 @@ are `58ee7ed2da6377a018bd40c03910f762eb55817d` and
 implementation is empty.
 
 The deployed product is <https://browser-bridge-crew.sociobot.in>. Rebuilt
-JavaScript and CSS match the live files exactly.
+JavaScript and CSS match the live files exactly. Review report:
+`.factory/review-2.md`.
 
 ## What was verified
 
@@ -56,8 +57,8 @@ phone-profile runs measured 60.003, 60.003, and 59.837 fps. Lighthouse scored
 100 for Performance, Accessibility, Best Practices, and SEO.
 
 Full evidence and earlier-finding dispositions are in
-`.factory/verification-5.md` and
-`/work/.evidence/browser-bridge-crew-verify-5/`.
+`.factory/review-2.md`, `.factory/verification-5.md`, and
+`/work/.evidence/qa-report.md`.
 
 ## Known gaps and next steps
 
