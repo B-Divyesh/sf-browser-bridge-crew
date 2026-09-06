@@ -1,17 +1,16 @@
-# Bridge Crew review 2 handoff — PASS
+# Bridge Crew review 3 handoff — PASS
 
 ## Result
 
-Fresh strict review 2 passed with **0 findings and 0 untested claims**.
+Fresh strict review 3 passed with **0 findings and 0 untested claims**.
 The reviewed implementation is
-`496681bdfef9154b30e6c7210d74492c372b9874`. The later documentation commits
-are `58ee7ed2da6377a018bd40c03910f762eb55817d` and
-`54c51118f69fed5901a9ebad1855a308aebaba71`; their product-code diff from the
+`496681bdfef9154b30e6c7210d74492c372b9874`. The documentation/report SHA is
+`76df6dbef81a08b3d218bb8fe649feaa39507944`; its product-code diff from the
 implementation is empty.
 
 The deployed product is <https://browser-bridge-crew.sociobot.in>. Rebuilt
 JavaScript and CSS match the live files exactly. Review report:
-`.factory/review-2.md`.
+`.factory/review-3.md`.
 
 ## What was verified
 
@@ -34,7 +33,7 @@ JavaScript and CSS match the live files exactly. Review report:
 - The room service passed health, invalid request, origin rejection, tenant
   isolation, file-backed restart persistence, and 429/`Retry-After: 60`
   checks.
-- All 23 declared claim commands passed from a clean clone. Each claim tag
+- All 23 declared claim commands passed from a clean checkout. Each claim tag
   occurs exactly once and no public claim is untested.
 
 ## Quality results
@@ -51,13 +50,14 @@ npm audit --audit-level=high
 duplicates of phone-only checks were intentionally skipped. The build produced
 `dist/`. Audit found zero vulnerabilities.
 
-The build contains 33,755 bytes of JavaScript (11,263 bytes gzip), 21,531 bytes
-of CSS (5,491 bytes gzip), and a 23,132-byte mobile hero. Three isolated live
-phone-profile runs measured 60.003, 60.003, and 59.837 fps. Lighthouse scored
-100 for Performance, Accessibility, Best Practices, and SEO.
+The build contains 33,755 bytes of JavaScript (11,330 bytes gzip), 21,531 bytes
+of CSS (5,500 bytes gzip), and a 23,132-byte mobile hero. Three isolated live
+phone-profile runs measured 60.002, 60.003, and 60.002 fps, with approximately
+60 fixed updates per second. Live Axe scans found no serious or critical issues
+on every public route and the designed 404.
 
 Full evidence and earlier-finding dispositions are in
-`.factory/review-2.md`, `.factory/verification-5.md`, and
+`.factory/review-3.md`, `.factory/verification-5.md`, and
 `/work/.evidence/qa-report.md`.
 
 ## Known gaps and next steps
