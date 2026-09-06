@@ -1,117 +1,62 @@
-# Bridge Crew verification 7 handoff — PASS
+# Bridge Crew strict review 4 handoff — FAIL
 
 ## Outcome
 
-Independent verification 7 accepts the deployed product: **PASS — 0 findings
-and 0 untested claims**. The V6-1 repair remains live. A fresh application
-route leaves browser focus untouched, first Tab reaches **Skip to main
-content**, and Enter moves focus to `main`. In-app route changes and browser
-history navigation still focus the new route heading.
+Strict review 4 found two Minor defects and no untested claims. The product is
+**FAIL — 2 Minor findings, 0 untested claims** until both are repaired and
+reverified. No product code, backend, deployment, infrastructure, or service
+state was changed during this review.
 
-The deployed implementation is `2457defb9f1e23c5062769b4680845c9a58a1702`.
-The repair started from documentation SHA
-`c29c0675702fee3aa7c4c320f2c39c7cbbdc0719`; subsequent handoff changes are
-report-only.
+- An active game frame survives client-side navigation and throws after trying
+  to update removed game elements.
+- At 390 by 664, the primary action barely fits, but its outcome text and the
+  required plain facts begin below the first viewport.
 
-## Changes
+Full report: `.factory/review-4.md`.
 
-- `renderRoute()` moves focus only when called by in-app or history navigation.
-  Initial and online-triggered renders do not move focus.
-- Each rendered `main` landmark is programmatically focusable. Activating the
-  skip link updates the fragment, scrolls to main, and focuses it.
-- Browser regressions cover fresh home, demo, legal, and missing routes in both
-  configured projects. A second regression preserves heading focus after an
-  in-app route change and Back navigation.
-- No game, room-service, storage, copy, billing, or visual behavior changed.
+## Reviewed candidate
 
-## Local verification
+- Live URL: <https://browser-bridge-crew.sociobot.in>
+- Implementation: `2457defb9f1e23c5062769b4680845c9a58a1702`
+- Documentation base: `61fdf3f315927c322426fb458bf1919051ef7eae`
+- Live backend source: `e572ad67977e8074e0db2ab447da40e610dc0611`
 
-Clean setup used `npm ci` with Playwright 1.58.2.
+The clean build and live static assets match byte for byte. Commits after the
+implementation are report-only.
 
-- Every exact command in `.factory/claims.json`: 23 of 23 passed. Each claim ID
-  occurs once in test source, with no extra claim tags.
-- `npm test`: 15 unit/integration tests and 44 browser checks passed; two
-  project-specific checks were intentionally skipped.
-- `npm run build`: passed and produced `dist/`.
-- `npm audit --audit-level=high`: zero vulnerabilities.
-- Browser Axe checks: zero serious or critical findings on all application
-  routes in desktop and phone projects.
-- `/opt/fleet/lib/verify-url.sh` passed against the production candidate with
-  one h1, `lang=en`, a main landmark, complete image alternatives, labelled
-  buttons, and no console errors.
-- Production output: 34,049-byte JavaScript (11,357 bytes gzip) and 21,531-byte
-  CSS (5,491 bytes gzip). The mobile scene remains 23,132 bytes.
-- The measured phone claim reported 60.0 fps and 60.0 fixed updates per second
-  at 360 by 640 CSS pixels, touch input, and 4× CPU slowdown.
+## Verification completed
 
-## Deployment and cold live verification
+- `npm ci`
+- Every exact `.factory/claims.json` command: 23 of 23 passed
+- `npm test`: 15 unit/integration and 44 browser tests passed; two intended
+  project-specific skips
+- `npm run build`: passed and produced `dist/`
+- `npm audit --audit-level=high`: zero vulnerabilities
+- Live Chromium, Firefox, and WebKit desktop and 390 by 664 phone checks
+- One-click demo, reset isolation, visible repair, actual loss screen, replay,
+  keyboard/touch, pause, persisted settings, and offline reload
+- Independent Chromium host and Firefox crew live-room sync and reconnect
+- Live health, invalid input, CORS, 404, and 90-request allowance with 429 and
+  `Retry-After: 60`
+- Local SQLite restart persistence and cross-room token rejection
+- Axe on all public routes and the designed 404 in three engines: zero serious
+  or critical findings
+- Factory URL verifier: pass
+- Lighthouse: 100 Performance, Accessibility, Best Practices, and SEO
+- Measured loop: 60.0 fps and 59.8 fixed updates/s on the declared phone profile
 
-`dist/` was deployed to the existing product-owned Static Web App
-`sf-browser-bridge-crew`. The realtime service was not redeployed or restarted;
-this repair does not change it. The live application JavaScript and the built
-artifact share SHA-256
-`0b5a9d81cf5b895ba6bff837de63e9cbaf6dbc09a76316db7265aa6756101872`.
+Evidence is under `/work/.evidence/browser-bridge-crew-review-4/`.
 
-- The live URL verifier passed with no console errors.
-- Fresh Chromium, Firefox, and WebKit contexts at 1440 by 1000 and 390 by 664
-  all began on `BODY`; first Tab reached the skip link; Enter focused `main`;
-  Privacy navigation focused its h1.
-- Both first screens showed the job, audience, sample action, and playable
-  fault before scrolling, without horizontal overflow.
-- The one-click demo showed its persistent sample label, 07:48, 76% integrity,
-  three repairs, and 342 points. Reset removed demo settings and left a seeded
-  real-data value unchanged.
-- Visible station controls repaired the sample. Seven visible incorrect repairs
-  reached **The ship needs another crew**. Replay restored 12:00 and 100%
-  integrity. Phone touch changed the Helm bearing.
-- Live Axe reported zero serious or critical findings on home, demo, Privacy,
-  Terms, and the designed HTTP 404. Reduced motion, 200% text, invalid input,
-  missing-room recovery, route titles, internal links, and offline reload
-  passed.
-- Two independent live browser contexts created room `NE33E`. Signals scanned
-  the fault, the host changed from **Scanning required** to **navigation**, and
-  reload restored the Signals station and room connection.
-- The product-owned room service returned health 200, invalid state 400,
-  foreign Origin 403, and an unknown route 404. In a new request bucket,
-  requests 1–90 were allowed and request 91 returned 429 with
-  `Retry-After: 60`.
-- The full local suite re-proved file-backed SQLite restart persistence,
-  cross-room token isolation, eight-player capacity, exact 20-minute expiry,
-  and the stored-field inventory.
+## Required next steps
 
-Evidence is under `/work/.evidence/browser-bridge-crew-repair-4/`. The required
-catalog description was copied to `/work/.evidence/catalog-description.txt`.
+1. Bind each mounted game frame to the route signal that existed when the game
+   was mounted, or cancel the frame on unmount. Add a delayed demo-to-Privacy
+   and Back regression that asserts no page or console error.
+2. Fit the action outcome and at least three plain facts into the initial 390 by
+   664 phone viewport without hiding the job, audience, action, or game scene.
+3. Rerun all claim commands, the full suite, build, three-engine live route
+   transition, and phone first-screen bounds before declaring PASS.
 
-## Earlier findings and remaining gaps
-
-All earlier findings in review 1 and verification 1–6 were read. The prior
-multiplayer, persistence, claims, 404, performance, wording, and 44-pixel target
-repairs remain covered by the passing claims and full suite. V6-1 is now fixed
-locally and live.
-
-No known product gap remains for this work order. The separate path
-`factory-evidence/browser-bridge-crew-verify-6/qa-report.md` was not present in
-the supplied filesystem; the complete repository report
-`.factory/verification-6.md` was available and was used as the authoritative
-finding record.
-
-## Verification 7 evidence
-
-- Implementation reviewed: `2457defb9f1e23c5062769b4680845c9a58a1702`.
-  Documentation reviewed: `71410a69e74276c7ce672c767ee3321ece3db6ce`.
-- A clean rebuild matches the deployed JavaScript SHA-256
-  `0b5a9d81cf5b895ba6bff837de63e9cbaf6dbc09a76316db7265aa6756101872`.
-- `npm ci`, all 23 exact claim commands, `npm test` (15 unit/integration and
-  44 browser passes, two intended skips), `npm run build`, and high-level audit
-  completed successfully.
-- Fresh Chromium, Firefox, and WebKit desktop and phone contexts verified first
-  Tab/skip/main, user navigation and Back heading focus, one-click labelled
-  demo, reset isolation, actual loss screen, replay, reduced motion, 200% text,
-  offline reload, legal pages, links, designed 404, and zero serious/critical
-  Axe findings.
-- Separate live host and phone-sized Signals clients synchronized a room and
-  restored the station after reload. Health, invalid input, CORS, and 429 with
-  `Retry-After` passed. No known product gap remains.
-
-Full report: `.factory/verification-7.md`. Supporting verifier artifacts are
-under `/work/.evidence/browser-bridge-crew-verify-7/`.
+The referenced external verification-7 evidence path was absent from the
+supplied filesystem. The complete repository verification report was read and
+its material evidence was independently repeated.
