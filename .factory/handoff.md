@@ -1,10 +1,11 @@
-# Bridge Crew repair 4 handoff — PASS
+# Bridge Crew verification 7 handoff — PASS
 
 ## Outcome
 
-Repair 4 fixes verification finding V6-1. A fresh application route now leaves
-browser focus untouched. The first Tab reaches **Skip to main content**, and
-Enter moves focus to the `main` landmark. In-app route changes and browser
+Independent verification 7 accepts the deployed product: **PASS — 0 findings
+and 0 untested claims**. The V6-1 repair remains live. A fresh application
+route leaves browser focus untouched, first Tab reaches **Skip to main
+content**, and Enter moves focus to `main`. In-app route changes and browser
 history navigation still focus the new route heading.
 
 The deployed implementation is `2457defb9f1e23c5062769b4680845c9a58a1702`.
@@ -93,3 +94,24 @@ No known product gap remains for this work order. The separate path
 the supplied filesystem; the complete repository report
 `.factory/verification-6.md` was available and was used as the authoritative
 finding record.
+
+## Verification 7 evidence
+
+- Implementation reviewed: `2457defb9f1e23c5062769b4680845c9a58a1702`.
+  Documentation reviewed: `71410a69e74276c7ce672c767ee3321ece3db6ce`.
+- A clean rebuild matches the deployed JavaScript SHA-256
+  `0b5a9d81cf5b895ba6bff837de63e9cbaf6dbc09a76316db7265aa6756101872`.
+- `npm ci`, all 23 exact claim commands, `npm test` (15 unit/integration and
+  44 browser passes, two intended skips), `npm run build`, and high-level audit
+  completed successfully.
+- Fresh Chromium, Firefox, and WebKit desktop and phone contexts verified first
+  Tab/skip/main, user navigation and Back heading focus, one-click labelled
+  demo, reset isolation, actual loss screen, replay, reduced motion, 200% text,
+  offline reload, legal pages, links, designed 404, and zero serious/critical
+  Axe findings.
+- Separate live host and phone-sized Signals clients synchronized a room and
+  restored the station after reload. Health, invalid input, CORS, and 429 with
+  `Retry-After` passed. No known product gap remains.
+
+Full report: `.factory/verification-7.md`. Supporting verifier artifacts are
+under `/work/.evidence/browser-bridge-crew-verify-7/`.
