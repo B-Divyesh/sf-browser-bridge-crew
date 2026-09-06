@@ -301,6 +301,29 @@ test('pages have one h1 and no serious accessibility findings', async ({ page })
   }
 });
 
+test('fresh routes leave focus untouched so the skip link reaches main first', async ({ page }) => {
+  for (const path of ['/', '/demo', '/privacy', '/terms', '/missing-page']) {
+    await page.goto(path);
+    await expect(page.locator('h1')).toBeVisible();
+    expect(await page.evaluate(() => document.activeElement === document.body)).toBeTruthy();
+
+    await page.keyboard.press('Tab');
+    await expect(page.getByRole('link', { name: 'Skip to main content' })).toBeFocused();
+    await page.keyboard.press('Enter');
+    await expect(page.locator('#main')).toBeFocused();
+  }
+});
+
+test('in-app and history navigation move focus to the new route heading', async ({ page }) => {
+  await page.goto('/');
+  await page.getByRole('link', { name: 'Privacy' }).first().click();
+  await expect(page.getByRole('heading', { name: 'What your browser and the room service store' })).toBeFocused();
+
+  await page.evaluate(() => history.back());
+  await expect(page).toHaveURL(/\/$/);
+  await expect(page.getByRole('heading', { name: 'Run a browser-tab spaceship repair game' })).toBeFocused();
+});
+
 test('navigation links provide 44 pixel touch targets on application and static routes', async ({ page }) => {
   for (const path of ['/', '/demo', '/privacy', '/terms', '/404.html']) {
     await page.goto(path);

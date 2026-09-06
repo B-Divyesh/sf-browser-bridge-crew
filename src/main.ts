@@ -45,17 +45,27 @@ const glyphNames: Record<Glyph, string> = { ring: 'Ring', wave: 'Wave', kite: 'K
 
 function navigate(path: string): void {
   history.pushState({}, '', path);
-  renderRoute();
+  renderRoute(true);
   window.scrollTo(0, 0);
 }
 
 document.addEventListener('click', (event) => {
-  const link = (event.target as HTMLElement).closest<HTMLAnchorElement>('a[data-route]');
+  const target = event.target as HTMLElement;
+  if (target.closest<HTMLAnchorElement>('a[href="#main"]')) {
+    event.preventDefault();
+    const main = document.querySelector<HTMLElement>('#main');
+    if (!main) return;
+    history.replaceState(history.state, '', '#main');
+    main.focus({ preventScroll: true });
+    main.scrollIntoView();
+    return;
+  }
+  const link = target.closest<HTMLAnchorElement>('a[data-route]');
   if (!link || link.origin !== location.origin) return;
   event.preventDefault();
   navigate(`${link.pathname}${link.search}`);
 });
-window.addEventListener('popstate', renderRoute);
+window.addEventListener('popstate', () => renderRoute(true));
 
 function icon(name: 'mark' | 'arrow' | 'sound' | 'pause'): string {
   const paths = {
@@ -96,6 +106,7 @@ function setPage(title: string, description: string, content: string): void {
   document.querySelector<HTMLMetaElement>('meta[name="twitter:title"]')!.content = title;
   document.querySelector<HTMLMetaElement>('meta[name="twitter:description"]')!.content = description;
   app.innerHTML = `${header()}${content}${footer()}`;
+  app.querySelector('main')?.setAttribute('tabindex', '-1');
   routeAnnouncement.textContent = document.querySelector('h1')?.textContent ?? '';
 }
 
@@ -509,7 +520,7 @@ function glyphSymbol(glyph: Glyph): string {
 }
 
 let routeAbort = new AbortController();
-function renderRoute(): void {
+function renderRoute(focusHeading = false): void {
   routeAbort.abort();
   routeAbort = new AbortController();
   const path = location.pathname.replace(/\/$/, '') || '/';
@@ -520,10 +531,10 @@ function renderRoute(): void {
   else if (path === '/terms') legalPage('terms');
   else if (path.startsWith('/room/')) void roomPage(path.split('/')[2].toUpperCase(), new URLSearchParams(location.search), routeAbort.signal);
   else notFoundPage();
-  requestAnimationFrame(() => document.querySelector<HTMLElement>('h1')?.focus({ preventScroll: true }));
+  if (focusHeading) requestAnimationFrame(() => document.querySelector<HTMLElement>('h1')?.focus({ preventScroll: true }));
 }
 
-window.addEventListener('online', renderRoute);
+window.addEventListener('online', () => renderRoute());
 window.addEventListener('offline', () => {
   const status = document.querySelector('#connection-state');
   if (status) status.textContent = 'This tab is offline. Reconnect before opening another station.';
