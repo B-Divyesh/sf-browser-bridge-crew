@@ -1,66 +1,95 @@
-# Bridge Crew verification 6 handoff — FAIL
+# Bridge Crew repair 4 handoff — PASS
 
-## Result
+## Outcome
 
-Independent cross-browser verification found **1 Minor finding and 0 untested
-claims**. The result is **FAIL** because a PASS requires zero findings.
+Repair 4 fixes verification finding V6-1. A fresh application route now leaves
+browser focus untouched. The first Tab reaches **Skip to main content**, and
+Enter moves focus to the `main` landmark. In-app route changes and browser
+history navigation still focus the new route heading.
 
-The reviewed implementation is `496681bdfef9154b30e6c7210d74492c372b9874`.
-The documentation SHA is `10acc2efe2f80f69520e9e8271c2f90f6d9963cd`; its
-diff from the implementation contains only `.factory` reports. Rebuilt static
-assets match live assets byte for byte. The live realtime authority reports
-`e572ad67977e8074e0db2ab447da40e610dc0611`; its backend source is unchanged
-in the reviewed implementation.
+The deployed implementation is `2457defb9f1e23c5062769b4680845c9a58a1702`.
+The repair started from documentation SHA
+`c29c0675702fee3aa7c4c320f2c39c7cbbdc0719`; subsequent handoff changes are
+report-only.
 
-## Finding to repair
+## Changes
 
-**V6-1, Minor — initial app render focuses the h1 before the user acts.** The
-first Tab on a fresh live route reaches **Try it with sample data**, not the
-required **Skip to main content** link. The skip link is present but needs
-reverse-Tab to reach it. `renderRoute()` calls `h1.focus()` even on first load.
+- `renderRoute()` moves focus only when called by in-app or history navigation.
+  Initial and online-triggered renders do not move focus.
+- Each rendered `main` landmark is programmatically focusable. Activating the
+  skip link updates the fragment, scrolls to main, and focuses it.
+- Browser regressions cover fresh home, demo, legal, and missing routes in both
+  configured projects. A second regression preserves heading focus after an
+  in-app route change and Back navigation.
+- No game, room-service, storage, copy, billing, or visual behavior changed.
 
-Repair by preserving initial browser focus. Move focus to a route heading only
-after an in-app route change or history navigation. Add a test: initial Tab
-must focus `a[href="#main"]`, and Enter must focus `#main`.
+## Local verification
 
-## What was verified
+Clean setup used `npm ci` with Playwright 1.58.2.
 
-- Installed Playwright 1.58.2 Chromium 145.0.7632.6, Firefox 146.0.1, WebKit
-  26.0, and the documented Linux browser dependencies.
-- Fresh desktop and phone-sized live runs in all three engines showed the job,
-  audience, and sample action before scroll. Each entered the labelled sample,
-  used keyboard/touch input, reset, reached the actual loss end screen,
-  replayed, and reloaded saved sound settings.
-- Chromium and Firefox showed no Web Audio start before input and sound after
-  a successful visible repair. WebKit completed that repair without a console
-  error. Playwright WebKit screenshot style injection is incompatible with the
-  strict CSP; no-screenshot loads and play had no product error.
-- Each engine used two independent real live clients. A crew Signals scan
-  synchronized to the host and reloaded to the same role.
-- All 23 declared claim commands, `npm test`, `npm run build`, and high-level
-  audit passed. The phone performance claim measured 60.0 fps and 60.0 fixed
-  updates/s.
-- Live Axe, the URL verifier, route/link checks, invalid room paths, reduced
-  motion, 200% text, privacy traffic, live health/invalid/origin behavior,
-  and 429 with `Retry-After: 60` passed.
+- Every exact command in `.factory/claims.json`: 23 of 23 passed. Each claim ID
+  occurs once in test source, with no extra claim tags.
+- `npm test`: 15 unit/integration tests and 44 browser checks passed; two
+  project-specific checks were intentionally skipped.
+- `npm run build`: passed and produced `dist/`.
+- `npm audit --audit-level=high`: zero vulnerabilities.
+- Browser Axe checks: zero serious or critical findings on all application
+  routes in desktop and phone projects.
+- `/opt/fleet/lib/verify-url.sh` passed against the production candidate with
+  one h1, `lang=en`, a main landmark, complete image alternatives, labelled
+  buttons, and no console errors.
+- Production output: 34,049-byte JavaScript (11,357 bytes gzip) and 21,531-byte
+  CSS (5,491 bytes gzip). The mobile scene remains 23,132 bytes.
+- The measured phone claim reported 60.0 fps and 60.0 fixed updates per second
+  at 360 by 640 CSS pixels, touch input, and 4× CPU slowdown.
 
-## How to verify
+## Deployment and cold live verification
 
-```sh
-npm ci
-npm test
-npm run build
-```
+`dist/` was deployed to the existing product-owned Static Web App
+`sf-browser-bridge-crew`. The realtime service was not redeployed or restarted;
+this repair does not change it. The live application JavaScript and the built
+artifact share SHA-256
+`0b5a9d81cf5b895ba6bff837de63e9cbaf6dbc09a76316db7265aa6756101872`.
 
-Run every exact command in `.factory/claims.json`. For the outstanding issue,
-open the live home page in a fresh browser and press Tab once before clicking:
-focus currently goes to the sample action instead of the skip link.
+- The live URL verifier passed with no console errors.
+- Fresh Chromium, Firefox, and WebKit contexts at 1440 by 1000 and 390 by 664
+  all began on `BODY`; first Tab reached the skip link; Enter focused `main`;
+  Privacy navigation focused its h1.
+- Both first screens showed the job, audience, sample action, and playable
+  fault before scrolling, without horizontal overflow.
+- The one-click demo showed its persistent sample label, 07:48, 76% integrity,
+  three repairs, and 342 points. Reset removed demo settings and left a seeded
+  real-data value unchanged.
+- Visible station controls repaired the sample. Seven visible incorrect repairs
+  reached **The ship needs another crew**. Replay restored 12:00 and 100%
+  integrity. Phone touch changed the Helm bearing.
+- Live Axe reported zero serious or critical findings on home, demo, Privacy,
+  Terms, and the designed HTTP 404. Reduced motion, 200% text, invalid input,
+  missing-room recovery, route titles, internal links, and offline reload
+  passed.
+- Two independent live browser contexts created room `NE33E`. Signals scanned
+  the fault, the host changed from **Scanning required** to **navigation**, and
+  reload restored the Signals station and room connection.
+- The product-owned room service returned health 200, invalid state 400,
+  foreign Origin 403, and an unknown route 404. In a new request bucket,
+  requests 1–90 were allowed and request 91 returned 429 with
+  `Retry-After: 60`.
+- The full local suite re-proved file-backed SQLite restart persistence,
+  cross-room token isolation, eight-player capacity, exact 20-minute expiry,
+  and the stored-field inventory.
 
-## Evidence and next step
+Evidence is under `/work/.evidence/browser-bridge-crew-repair-4/`. The required
+catalog description was copied to `/work/.evidence/catalog-description.txt`.
 
-Full report: `.factory/verification-6.md`.
+## Earlier findings and remaining gaps
 
-Evidence: `/work/.evidence/browser-bridge-crew-verify-6/`.
+All earlier findings in review 1 and verification 1–6 were read. The prior
+multiplayer, persistence, claims, 404, performance, wording, and 44-pixel target
+repairs remain covered by the passing claims and full suite. V6-1 is now fixed
+locally and live.
 
-No product code, deployment, infrastructure, database, or secret was changed.
-Fix V6-1 and repeat the focused keyboard check plus the normal quality gates.
+No known product gap remains for this work order. The separate path
+`factory-evidence/browser-bridge-crew-verify-6/qa-report.md` was not present in
+the supplied filesystem; the complete repository report
+`.factory/verification-6.md` was available and was used as the authoritative
+finding record.
